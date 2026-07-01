@@ -46,7 +46,6 @@ export default function CartPage() {
                   gradient={item.gradient}
                   frameImage={baseProduct?.frameImage} // ✨ PASS YOUR WEBPCARD PATH DIRECTLY HERE
                   textShiftY={CART_MINI_SHIFTS}       // ✨ SECURE DYNAMIC TYPE SPACING ALIGNMENTS
-                  photo={item.photo}                   // Passes customer uploaded face file if stored
                   size={90}
                 />
                 <div className="flex-1">
