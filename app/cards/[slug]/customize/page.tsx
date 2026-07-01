@@ -9,6 +9,9 @@ import {
 } from "@/lib/data";
 import { formatRs } from "@/lib/format";
 import { useCart, CartItem } from "@/lib/cart";
+import ImageCropper from "@/components/ImageCropper";
+import { getCroppedImg } from "@/lib/cropImage"; // ✨ Import our new processing helper
+import EditImageModal from "@/components/EditImageModal"; // ✨ Import the new modal overlay
 
 type Attrs = { PAC: number; SHO: number; PAS: number; DRI: number; DEF: number; PHY: number };
 
@@ -16,9 +19,9 @@ const STEP_PCT = [20, 40, 60, 80, 90];
 
 // ✨ Centralized alignment offsets engineered specifically for your webp frame images
 const CARD_LAYOUT_SHIFTS = {
-  meta: 56,   // Drags the rating "51" and position "LF" down into the open quadrant box
-  name: 58,   // Lowers the name "SAM" so it matches perfectly over the golden horizontal banner
-  stats: 16,  // Pulls the attributes bar down to center cleanly over the dark base pockets
+  meta: 0,
+  name: 0,
+  stats: 0,
 };
 
 export default function CustomizePage({ params }: { params: { slug: string } }) {
@@ -76,14 +79,17 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
     setOverall(avg);
   };
 
-  const onPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => setPhoto(reader.result as string);
-      reader.readAsDataURL(file);
-    }
-  };
+ const onPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      setRawUpload(reader.result as string);
+      setIsModalOpen(true); // Open the popup instantly when the file finishes loading!
+    };
+    reader.readAsDataURL(file);
+  }
+}
 
   const toggleAddon = (id: string) => {
     setSelectedAddons((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
@@ -122,6 +128,8 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
   };
 
   const clubInitial = club.slice(0, 2).toUpperCase();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [rawUpload, setRawUpload] = useState<string | null>(null); // Keeps track of uncropped original upload
 
   return (
     <div className="min-h-screen bg-cream grid md:grid-cols-2">
@@ -129,61 +137,92 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
       <div className="px-6 sm:px-12 py-12 max-w-xl mx-auto md:mx-0 md:ml-auto w-full">
         <p className="font-display text-7xl text-ink/10 mb-2 leading-none">{step}</p>
 
-        {step === 1 && (
-          <StepWrap title="Basic information" subtitle="Enter name, upload an image and choose a position.">
-            <Card>
-              <SectionLabel letter="A" title="Name & image upload" />
-              <label className="block text-xs text-ink/60 mb-1">Enter name</label>
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Thivaharan"
-                className="w-full border border-black/10 rounded-lg px-4 py-3 mb-4 font-display text-lg text-ink focus-ring"
+       {step === 1 && (
+        <StepWrap title="Basic information" subtitle="Enter name, upload an image and choose a position.">
+          <Card>
+            <SectionLabel letter="A" title="Name & image upload" />
+            <label className="block text-xs text-ink/60 mb-1">Enter name</label>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. Thivaharan"
+              className="w-full border border-black/10 rounded-lg px-4 py-3 mb-4 font-display text-lg text-ink focus-ring"
+            />
+            
+            <div className="flex items-center gap-4">
+              {photo ? (
+                <img src={photo} alt="upload" className="w-16 h-16 rounded-lg object-cover border border-black/5" />
+              ) : (
+                <div className="w-16 h-16 rounded-lg bg-cream border border-dashed border-black/20" />
+              )}
+              
+              {/* Trigger Button handles both regular file picking or invoking your side-by-side modal popup */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (photo) {
+                    setIsModalOpen(true); // Re-opens your gorgeous side-by-side editing tool modal!
+                  } else {
+                    fileRef.current?.click();
+                  }
+                }}
+                className="flex-1 border border-dashed border-black/20 rounded-lg py-4 text-sm text-ink/60 hover:border-ink/40 transition font-medium"
+              >
+                {photo ? "Edit Photo Framing" : "Click to upload a photo"}
+              </button>
+              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onPhotoChange} />
+            </div>
+
+            {/* ✨ RENDER FULL SIDE-BY-SIDE MODAL OVERLAY SEPARATELY OUTSIDE INLINE MARGINS ✨ */}
+            {rawUpload && (
+              <EditImageModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                imageSrc={rawUpload}
+                onSave={(croppedRes) => setPhoto(croppedRes)} // Commits canvas string into the app state core variables
+                cardData={{
+                  name: name || "Player",
+                  position: position,
+                  overall: overall,
+                  attrs: attrs,
+                  gradient: product.gradient,
+                  frameImage: product.frameImage,
+                }}
               />
-              <div className="flex items-center gap-4">
-                {photo ? (
-                  <img src={photo} alt="upload" className="w-16 h-16 rounded-lg object-cover" />
-                ) : (
-                  <div className="w-16 h-16 rounded-lg bg-cream border border-dashed border-black/20" />
-                )}
+            )}
+          </Card>
+
+          <Card>
+            <SectionLabel letter="B" title="Choose a position" />
+            <div className="flex gap-6 text-sm font-display mb-4 border-b border-black/5">
+              {(Object.keys(POSITIONS) as (keyof typeof POSITIONS)[]).map((g) => (
                 <button
-                  onClick={() => fileRef.current?.click()}
-                  className="flex-1 border border-dashed border-black/20 rounded-lg py-4 text-sm text-ink/60 hover:border-ink/40"
+                  key={g}
+                  type="button"
+                  onClick={() => { setPosGroup(g); setPosition(POSITIONS[g][0]); }}
+                  className={`pb-3 -mb-px border-b-2 transition ${posGroup === g ? "border-ink text-ink" : "border-transparent text-ink/40"}`}
                 >
-                  {photo ? "Change photo" : "Click to upload a photo"}
+                  {g}
                 </button>
-                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onPhotoChange} />
-              </div>
-            </Card>
-            <Card>
-              <SectionLabel letter="B" title="Choose a position" />
-              <div className="flex gap-6 text-sm font-display mb-4 border-b border-black/5">
-                {(Object.keys(POSITIONS) as (keyof typeof POSITIONS)[]).map((g) => (
-                  <button
-                    key={g}
-                    onClick={() => { setPosGroup(g); setPosition(POSITIONS[g][0]); }}
-                    className={`pb-3 -mb-px border-b-2 ${posGroup === g ? "border-ink text-ink" : "border-transparent text-ink/40"}`}
-                  >
-                    {g}
-                  </button>
-                ))}
-              </div>
-              <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
-                {POSITIONS[posGroup].map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => setPosition(p)}
-                    className={`border rounded-lg py-2 text-sm flex items-center justify-center gap-1 ${
-                      position === p ? "border-ink bg-ink text-chalk" : "border-black/10 text-ink/70"
-                    }`}
-                  >
-                    {position === p && "✓"} {p}
-                  </button>
-                ))}
-              </div>
-            </Card>
-          </StepWrap>
-        )}
+              ))}
+            </div>
+            <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+              {POSITIONS[posGroup].map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setPosition(p)}
+                  className={`border rounded-lg py-2 text-sm flex items-center justify-center gap-1 transition ${
+                    position === p ? "border-ink bg-ink text-chalk" : "border-black/10 text-ink/70"
+                  }`}
+                >
+                  {position === p && "✓"} {p}
+                </button>
+              ))}
+            </div>
+          </Card>
+        </StepWrap>
+      )}
 
         {step === 2 && (
           <StepWrap title="Club badge customisation" subtitle="Choose a club badge or upload a custom one.">

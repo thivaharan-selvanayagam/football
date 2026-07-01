@@ -8,11 +8,11 @@ import { formatRs } from "@/lib/format";
 
 const sampleAttrs = { PAC: 84, SHO: 86, PAS: 82, DRI: 88, DEF: 40, PHY: 72 };
 
-// Centralized alignment offsets calculated specifically for your .webp assets
+// ✨ Re-calibrated coordinates specifically to prevent text-frame collisions
 const CARD_LAYOUT_SHIFTS = {
-  meta: 35,   // Drags the '88' and 'CAM' down into the open space
-  name: 18,   // Lowers the 'PLAYER' name into the glowing nameplate band
-  stats: -12, // Pulls the PAC/SHO matrix up perfectly inside the bottom dark gradient arch
+  meta: 0,
+  name: 0,
+  stats: 0,
 };
 
 export default function ProductPage({ params }: { params: { slug: string } }) {
@@ -83,21 +83,13 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
             <span>🖼 All photo edits done for you</span>
           </div>
 
-          {/* Style */}
+          {/* Style - Heading kept for layout, but choice hidden */}
           <div className="mb-6">
-            <p className="font-display text-sm text-ink mb-3">1. Select Style</p>
-            <div className="grid grid-cols-2 gap-3">
-              {(["Standard", "Metal"] as const).map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setStyle(s)}
-                  className={`border rounded-lg py-3 text-sm font-body transition ${
-                    style === s ? "border-emerald bg-emerald/5 text-ink" : "border-black/10 text-ink/70"
-                  }`}
-                >
-                  {s}
-                </button>
-              ))}
+            <p className="font-display text-sm text-ink mb-3">1. Style</p>
+            <div className="grid grid-cols-1">
+              <div className="border border-emerald bg-emerald/5 text-ink rounded-lg py-3 text-sm font-body text-center shadow-sm">
+                Standard Premium Print
+              </div>
             </div>
           </div>
 

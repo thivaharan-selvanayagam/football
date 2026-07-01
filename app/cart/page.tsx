@@ -7,9 +7,9 @@ import { getProduct } from "@/lib/data"; // ✨ Import getProduct to lookup the 
 
 // ✨ Offsets calibrated specifically for the mini 90px card view in the cart panel
 const CART_MINI_SHIFTS = {
-  meta: 45,   
-  name: 30,   
-  stats: 5,   
+   meta: 0,
+  name: 0,
+  stats: 0,
 };
 
 export default function CartPage() {
