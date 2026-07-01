@@ -1,11 +1,10 @@
 "use client";
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import FutCard from "@/components/FutCard";
+import Image from "next/image"; // ✨ Import Next.js optimized Image component
 import { products, collections } from "@/lib/data";
 import { formatRs } from "@/lib/format";
 
-const sampleAttrs = { PAC: 84, SHO: 86, PAS: 82, DRI: 88, DEF: 40, PHY: 72 };
 const PAGE_SIZE = 18;
 
 export default function CardsPage() {
@@ -28,6 +27,7 @@ export default function CardsPage() {
 
   return (
     <div>
+      {/* Banner */}
       <div className="bg-cream border-b border-black/5">
         <div className="max-w-7xl mx-auto px-6 py-10">
           <h1 className="font-display text-4xl text-ink mb-6">Standard</h1>
@@ -68,18 +68,29 @@ export default function CardsPage() {
         <div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
             {pageItems.map((p) => (
-              <Link key={p.slug} href={`/cards/${p.slug}`} className="group relative block bg-white rounded-xl border border-black/5 hover:shadow-card transition p-5">
-                <span className="absolute top-3 left-3 text-[10px] bg-red-600 text-white px-2 py-0.5 rounded">Sale</span>
+              <Link key={p.slug} href={`/cards/${p.slug}`} className="group relative block bg-white rounded-xl border border-black/5 hover:shadow-card transition p-5 text-center">
+                <span className="absolute top-3 left-3 text-[10px] bg-red-600 text-white px-2 py-0.5 rounded z-10">Sale</span>
                 {p.bestSeller && (
-                  <span className="absolute top-3 right-3 text-[10px] bg-emerald text-chalk px-2 py-0.5 rounded-full flex items-center gap-1">★ Best Seller</span>
+                  <span className="absolute top-3 right-3 text-[10px] bg-emerald text-chalk px-2 py-0.5 rounded-full flex items-center gap-1 z-10">★ Best Seller</span>
                 )}
-                <div className="flex justify-center mb-4 mt-2 group-hover:-translate-y-1 transition">
-                  <FutCard name="Player" position="CAM" overall={86} attrs={sampleAttrs} gradient={p.gradient} size={130} />
+                
+                {/* Image Container */}
+                <div className="relative flex justify-center mb-4 mt-2 aspect-[2/3] w-full max-w-[150px] mx-auto group-hover:-translate-y-1 transition duration-300">
+                  {/* ✨ Clean, standard image view with no overlays ✨ */}
+                  <Image
+                    src={p.frameImage}
+                    alt={p.name}
+                    fill
+                    sizes="(max-width: 640px) 50vw, 33vw"
+                    priority={true}
+                    className="object-contain"
+                  />
                 </div>
-                <h3 className="font-display text-sm text-ink leading-snug mb-1">{p.name}</h3>
-                <p className="text-xs text-ink/70">
+
+                <h3 className="font-display text-base text-ink leading-snug mb-1 mt-4">{p.name}</h3>
+                <p className="text-sm font-semibold text-ink/90">
                   From {formatRs(p.basePrice)}{" "}
-                  <span className="line-through text-ink/30">{formatRs(p.compareAtPrice)}</span>
+                  <span className="line-through text-xs text-ink/30 font-normal ml-1">{formatRs(p.compareAtPrice)}</span>
                 </p>
                 <p className="text-[11px] text-emerald mt-0.5">You save {formatRs(p.compareAtPrice - p.basePrice)}</p>
               </Link>

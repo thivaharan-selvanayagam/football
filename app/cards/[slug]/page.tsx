@@ -8,6 +8,13 @@ import { formatRs } from "@/lib/format";
 
 const sampleAttrs = { PAC: 84, SHO: 86, PAS: 82, DRI: 88, DEF: 40, PHY: 72 };
 
+// Centralized alignment offsets calculated specifically for your .webp assets
+const CARD_LAYOUT_SHIFTS = {
+  meta: 35,   // Drags the '88' and 'CAM' down into the open space
+  name: 18,   // Lowers the 'PLAYER' name into the glowing nameplate band
+  stats: -12, // Pulls the PAC/SHO matrix up perfectly inside the bottom dark gradient arch
+};
+
 export default function ProductPage({ params }: { params: { slug: string } }) {
   const product = getProduct(params.slug);
   const router = useRouter();
@@ -26,12 +33,32 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
         {/* Gallery */}
         <div>
           <div className="bg-cream rounded-2xl p-10 flex justify-center mb-4">
-            <FutCard name="Player" position="CAM" overall={88} attrs={sampleAttrs} gradient={product.gradient} size={280} />
+            {/* Main Preview Card with alignment fixes applied */}
+            <FutCard 
+              name="Player" 
+              position="CAM" 
+              overall={88} 
+              attrs={sampleAttrs} 
+              gradient={product.gradient} 
+              frameImage={product.frameImage} 
+              size={280} 
+              textShiftY={CARD_LAYOUT_SHIFTS} 
+            />
           </div>
           <div className="grid grid-cols-4 gap-3">
             {[0, 1, 2, 3].map((i) => (
               <div key={i} className="bg-cream rounded-lg p-3 flex justify-center">
-                <FutCard name="Player" position="CAM" overall={88} attrs={sampleAttrs} gradient={product.gradient} size={60} />
+                {/* Thumbnails with identical alignment locks applied */}
+                <FutCard 
+                  name="Player" 
+                  position="CAM" 
+                  overall={88} 
+                  attrs={sampleAttrs} 
+                  gradient={product.gradient} 
+                  frameImage={product.frameImage} 
+                  size={60} 
+                  textShiftY={CARD_LAYOUT_SHIFTS} 
+                />
               </div>
             ))}
           </div>

@@ -1,3 +1,5 @@
+// lib/data.ts
+
 export type CardStyle = "Standard" | "Metal";
 export type CardSize = "Small" | "Medium" | "Large";
 
@@ -8,7 +10,8 @@ export interface CardProduct {
   bestSeller?: boolean;
   basePrice: number; // standard medium price (sale)
   compareAtPrice: number;
-  gradient: [string, string]; // two hex colors for card art
+  gradient: [string, string]; // Kept as a safe fallback
+  frameImage: string;          // NEW: Path to your .webp card frames
   rating: number;
   reviews: number;
 }
@@ -24,24 +27,24 @@ export const collections = [
 ];
 
 export const products: CardProduct[] = [
-  { slug: "fc26-england-world-cup-2026", name: "FC26 England World Cup 2026", collection: "FC26", basePrice: 7900, compareAtPrice: 13200, gradient: ["#9c1c23", "#e8e8e8"], rating: 4.6, reviews: 8160 },
-  { slug: "fc26-scotland-world-cup-2026", name: "FC26 Scotland World Cup 2026", collection: "FC26", basePrice: 7900, compareAtPrice: 13200, gradient: ["#1c2c6c", "#ffffff"], rating: 4.6, reviews: 8160 },
-  { slug: "fc26-team-of-the-year", name: "FC26 Team of the Year", collection: "FC26", basePrice: 7900, compareAtPrice: 13200, gradient: ["#0a1b3d", "#3a6fd8"], rating: 4.6, reviews: 8160 },
-  { slug: "fc26-footballs-greatest", name: "FC26 Football's Greatest", collection: "FC26", bestSeller: true, basePrice: 9800, compareAtPrice: 16400, gradient: ["#cfcfcf", "#8c8c8c"], rating: 4.6, reviews: 8160 },
-  { slug: "fc26-champions-league-rttk", name: "FC26 Champions League RTTK", collection: "FC26", bestSeller: true, basePrice: 7900, compareAtPrice: 13200, gradient: ["#0b2a6e", "#1f6fd8"], rating: 4.6, reviews: 8160 },
-  { slug: "fc26-shiny-gold", name: "FC26 Shiny Gold", collection: "FC26", bestSeller: true, basePrice: 7900, compareAtPrice: 13200, gradient: ["#caa84a", "#f3da8d"], rating: 4.6, reviews: 8160 },
-  { slug: "fc26-team-of-the-week", name: "FC26 Team of the Week", collection: "FC26", bestSeller: true, basePrice: 7900, compareAtPrice: 13200, gradient: ["#111111", "#3a3a3a"], rating: 4.6, reviews: 8160 },
-  { slug: "fc26-hero", name: "FC26 Hero", collection: "FC26", basePrice: 7900, compareAtPrice: 13200, gradient: ["#5b2c8a", "#b35bd8"], rating: 4.6, reviews: 8160 },
-  { slug: "fc26-team-of-the-year-heroes", name: "FC26 Team of the Year Heroes", collection: "FC26", basePrice: 7900, compareAtPrice: 13200, gradient: ["#0c1c4a", "#3457b3"], rating: 4.6, reviews: 8160 },
-  { slug: "fc26-cornerstones", name: "FC26 Cornerstones", collection: "FC26", basePrice: 7900, compareAtPrice: 13200, gradient: ["#6b4a1f", "#c98a3c"], rating: 4.6, reviews: 8160 },
-  { slug: "fc26-flashback", name: "FC26 Flashback", collection: "FC26", basePrice: 7900, compareAtPrice: 13200, gradient: ["#2a1f5e", "#9a4fc9"], rating: 4.6, reviews: 8160 },
-  { slug: "fc26-festival-of-football-captains", name: "FC26 Festival of Football Captains", collection: "FC26", basePrice: 7900, compareAtPrice: 13200, gradient: ["#8a1b4a", "#e8d8e0"], rating: 4.6, reviews: 8160 },
-  { slug: "fc26-world-tour", name: "FC26 World Tour", collection: "FC26", basePrice: 7900, compareAtPrice: 13200, gradient: ["#b85c1a", "#e8a23c"], rating: 4.6, reviews: 8160 },
-  { slug: "fc26-world-tour-silver-superstars", name: "FC26 World Tour Silver Superstars", collection: "FC26", basePrice: 7900, compareAtPrice: 13200, gradient: ["#c9602a", "#e8c77a"], rating: 4.6, reviews: 8160 },
-  { slug: "fc26-joga-bonito", name: "FC26 Joga Bonito", collection: "FC26", basePrice: 7900, compareAtPrice: 13200, gradient: ["#0a5c3a", "#3ad88a"], rating: 4.6, reviews: 8160 },
-  { slug: "fc26-fut-champions-gold", name: "FC26 FUT Champions Gold", collection: "FC26", basePrice: 7900, compareAtPrice: 13200, gradient: ["#3a0a0a", "#8a1a1a"], rating: 4.6, reviews: 8160 },
-  { slug: "fc26-winter-wildcard-sbc", name: "FC26 Winter Wildcard SBC", collection: "FC26", basePrice: 7900, compareAtPrice: 13200, gradient: ["#1a2a4a", "#c94a4a"], rating: 4.6, reviews: 8160 },
-  { slug: "fc26-unbreakables", name: "FC26 Unbreakables", collection: "FC26", basePrice: 7900, compareAtPrice: 13200, gradient: ["#3a1a4a", "#7a2a9a"], rating: 4.6, reviews: 8160 },
+  { slug: "fc26-england-world-cup-2026", name: "FC26 England World Cup 2026", collection: "FC26", basePrice: 7900, compareAtPrice: 13200, gradient: ["#9c1c23", "#e8e8e8"], frameImage: "/images/cards/fc1.webp", rating: 4.6, reviews: 8160 },
+  { slug: "fc26-scotland-world-cup-2026", name: "FC26 Scotland World Cup 2026", collection: "FC26", basePrice: 7900, compareAtPrice: 13200, gradient: ["#1c2c6c", "#ffffff"], frameImage: "/images/cards/fc2.webp", rating: 4.6, reviews: 8160 },
+  { slug: "fc26-team-of-the-year", name: "FC26 Team of the Year", collection: "FC26", basePrice: 7900, compareAtPrice: 13200, gradient: ["#0a1b3d", "#3a6fd8"], frameImage: "/images/cards/fc3.webp", rating: 4.6, reviews: 8160 },
+  { slug: "fc26-footballs-greatest", name: "FC26 Football's Greatest", collection: "FC26", bestSeller: true, basePrice: 9800, compareAtPrice: 16400, gradient: ["#cfcfcf", "#8c8c8c"], frameImage: "/images/cards/fc4.webp", rating: 4.6, reviews: 8160 },
+  { slug: "fc26-champions-league-rttk", name: "FC26 Champions League RTTK", collection: "FC26", bestSeller: true, basePrice: 7900, compareAtPrice: 13200, gradient: ["#0b2a6e", "#1f6fd8"], frameImage: "/images/cards/fc5.webp", rating: 4.6, reviews: 8160 },
+  { slug: "fc26-shiny-gold", name: "FC26 Shiny Gold", collection: "FC26", bestSeller: true, basePrice: 7900, compareAtPrice: 13200, gradient: ["#caa84a", "#f3da8d"], frameImage: "/images/cards/fc1.webp", rating: 4.6, reviews: 8160 },
+  { slug: "fc26-team-of-the-week", name: "FC26 Team of the Week", collection: "FC26", bestSeller: true, basePrice: 7900, compareAtPrice: 13200, gradient: ["#111111", "#3a3a3a"], frameImage: "/images/cards/fc2.webp", rating: 4.6, reviews: 8160 },
+  { slug: "fc26-hero", name: "FC26 Hero", collection: "FC26", basePrice: 7900, compareAtPrice: 13200, gradient: ["#5b2c8a", "#b35bd8"], frameImage: "/images/cards/fc3.webp", rating: 4.6, reviews: 8160 },
+  { slug: "fc26-team-of-the-year-heroes", name: "FC26 Team of the Year Heroes", collection: "FC26", basePrice: 7900, compareAtPrice: 13200, gradient: ["#0c1c4a", "#3457b3"], frameImage: "/images/cards/fc4.webp", rating: 4.6, reviews: 8160 },
+  { slug: "fc26-cornerstones", name: "FC26 Cornerstones", collection: "FC26", basePrice: 7900, compareAtPrice: 13200, gradient: ["#6b4a1f", "#c98a3c"], frameImage: "/images/cards/fc5.webp", rating: 4.6, reviews: 8160 },
+  { slug: "fc26-flashback", name: "FC26 Flashback", collection: "FC26", basePrice: 7900, compareAtPrice: 13200, gradient: ["#2a1f5e", "#9a4fc9"], frameImage: "/images/cards/fc1.webp", rating: 4.6, reviews: 8160 },
+  { slug: "fc26-festival-of-football-captains", name: "FC26 Festival of Football Captains", collection: "FC26", basePrice: 7900, compareAtPrice: 13200, gradient: ["#8a1b4a", "#e8d8e0"], frameImage: "/images/cards/fc2.webp", rating: 4.6, reviews: 8160 },
+  { slug: "fc26-world-tour", name: "FC26 World Tour", collection: "FC26", basePrice: 7900, compareAtPrice: 13200, gradient: ["#b85c1a", "#e8a23c"], frameImage: "/images/cards/fc3.webp", rating: 4.6, reviews: 8160 },
+  { slug: "fc26-world-tour-silver-superstars", name: "FC26 World Tour Silver Superstars", collection: "FC26", basePrice: 7900, compareAtPrice: 13200, gradient: ["#c9602a", "#e8c77a"], frameImage: "/images/cards/fc4.webp", rating: 4.6, reviews: 8160 },
+  { slug: "fc26-joga-bonito", name: "FC26 Joga Bonito", collection: "FC26", basePrice: 7900, compareAtPrice: 13200, gradient: ["#0a5c3a", "#3ad88a"], frameImage: "/images/cards/fc5.webp", rating: 4.6, reviews: 8160 },
+  { slug: "fc26-fut-champions-gold", name: "FC26 FUT Champions Gold", collection: "FC26", basePrice: 7900, compareAtPrice: 13200, gradient: ["#3a0a0a", "#8a1a1a"], frameImage: "/images/cards/fc1.webp", rating: 4.6, reviews: 8160 },
+  { slug: "fc26-winter-wildcard-sbc", name: "FC26 Winter Wildcard SBC", collection: "FC26", basePrice: 7900, compareAtPrice: 13200, gradient: ["#1a2a4a", "#c94a4a"], frameImage: "/images/cards/fc2.webp", rating: 4.6, reviews: 8160 },
+  { slug: "fc26-unbreakables", name: "FC26 Unbreakables", collection: "FC26", basePrice: 7900, compareAtPrice: 13200, gradient: ["#3a1a4a", "#7a2a9a"], frameImage: "/images/cards/fc3.webp", rating: 4.6, reviews: 8160 },
 ];
 
 export function getProduct(slug: string) {

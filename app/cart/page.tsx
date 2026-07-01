@@ -3,6 +3,14 @@ import Link from "next/link";
 import { useCart } from "@/lib/cart";
 import { formatRs } from "@/lib/format";
 import FutCard from "@/components/FutCard";
+import { getProduct } from "@/lib/data"; // ✨ Import getProduct to lookup the frameImage path dynamically
+
+// ✨ Offsets calibrated specifically for the mini 90px card view in the cart panel
+const CART_MINI_SHIFTS = {
+  meta: 45,   
+  name: 30,   
+  stats: 5,   
+};
 
 export default function CartPage() {
   const { items, removeItem, updateQty, subtotal } = useCart();
@@ -24,40 +32,48 @@ export default function CartPage() {
       <div>
         <h1 className="font-display text-3xl text-ink mb-8">Your Cart</h1>
         <div className="space-y-6">
-          {items.map((item) => (
-            <div key={item.id} className="flex gap-5 border border-black/5 rounded-xl p-5 bg-white">
-              <FutCard
-                name={item.name}
-                position={item.position}
-                overall={item.overall}
-                attrs={item.attributes}
-                gradient={item.gradient}
-                size={90}
-              />
-              <div className="flex-1">
-                <h3 className="font-display text-ink">{item.productName}</h3>
-                <p className="text-xs text-ink/50 mb-2">
-                  {item.style} · {item.size} · {item.position} · {item.club} · {item.country}
-                </p>
-                {item.addons.length > 0 && (
-                  <p className="text-xs text-ink/50 mb-2">Add-ons: {item.addons.length}</p>
-                )}
-                <div className="flex items-center gap-3">
-                  <input
-                    type="number"
-                    min={1}
-                    value={item.qty}
-                    onChange={(e) => updateQty(item.id, Number(e.target.value))}
-                    className="w-16 border border-black/10 rounded-lg px-2 py-1 text-sm"
-                  />
-                  <button onClick={() => removeItem(item.id)} className="text-xs text-red-600 underline">
-                    Remove
-                  </button>
+          {items.map((item) => {
+            // ✨ Look up the matching base product schema to grab its custom .webp path
+            const baseProduct = getProduct(item.productSlug);
+
+            return (
+              <div key={item.id} className="flex gap-5 border border-black/5 rounded-xl p-5 bg-white items-center">
+                <FutCard
+                  name={item.name}
+                  position={item.position}
+                  overall={item.overall}
+                  attrs={item.attributes}
+                  gradient={item.gradient}
+                  frameImage={baseProduct?.frameImage} // ✨ PASS YOUR WEBPCARD PATH DIRECTLY HERE
+                  textShiftY={CART_MINI_SHIFTS}       // ✨ SECURE DYNAMIC TYPE SPACING ALIGNMENTS
+                  photo={item.photo}                   // Passes customer uploaded face file if stored
+                  size={90}
+                />
+                <div className="flex-1">
+                  <h3 className="font-display text-ink">{item.productName}</h3>
+                  <p className="text-xs text-ink/50 mb-2">
+                    {item.style} · {item.size} · {item.position} · {item.club} · {item.country}
+                  </p>
+                  {item.addons.length > 0 && (
+                    <p className="text-xs text-ink/50 mb-2">Add-ons: {item.addons.length}</p>
+                  )}
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="number"
+                      min={1}
+                      value={item.qty}
+                      onChange={(e) => updateQty(item.id, Number(e.target.value))}
+                      className="w-16 border border-black/10 rounded-lg px-2 py-1 text-sm"
+                    />
+                    <button onClick={() => removeItem(item.id)} className="text-xs text-red-600 underline">
+                      Remove
+                    </button>
+                  </div>
                 </div>
+                <div className="font-display text-ink">{formatRs((item.unitPrice + item.addonsPrice) * item.qty)}</div>
               </div>
-              <div className="font-display text-ink">{formatRs((item.unitPrice + item.addonsPrice) * item.qty)}</div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

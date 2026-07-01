@@ -14,6 +14,13 @@ type Attrs = { PAC: number; SHO: number; PAS: number; DRI: number; DEF: number; 
 
 const STEP_PCT = [20, 40, 60, 80, 90];
 
+// ✨ Centralized alignment offsets engineered specifically for your webp frame images
+const CARD_LAYOUT_SHIFTS = {
+  meta: 56,   // Drags the rating "51" and position "LF" down into the open quadrant box
+  name: 58,   // Lowers the name "SAM" so it matches perfectly over the golden horizontal banner
+  stats: 16,  // Pulls the attributes bar down to center cleanly over the dark base pockets
+};
+
 export default function CustomizePage({ params }: { params: { slug: string } }) {
   return (
     <Suspense fallback={null}>
@@ -340,16 +347,21 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
           <span className="w-6 h-6 rounded-full bg-gold inline-block" /> CardsPlug
         </p>
         <span className="text-[11px] bg-cream text-ink/60 px-3 py-1 rounded-full mb-6">Preview Only</span>
+        
+        {/* ✨ UPDATED PROP ROUTE FOR YOUR FRAME IMAGE AND OFFSET LOCKS BELOW ✨ */}
         <FutCard
           name={name || "Player"}
           position={position}
           overall={overall}
           attrs={attrs}
           gradient={product.gradient}
+          frameImage={product.frameImage} // ✨ PASS THE CUSTOM WEBPCARD ASSET LAYER HERE
+          textShiftY={CARD_LAYOUT_SHIFTS} // ✨ ATTACH TEXT SHIFT ALIGNMENT
           photo={photo}
           clubInitial={clubInitial}
           size={260}
         />
+        
         <button className="mt-4 text-xs border border-black/10 rounded-full px-4 py-2 text-ink/70">✎ Edit Image</button>
         <h3 className="font-display text-xl text-ink mt-6 text-center">{product.name}</h3>
         <p className="text-xs text-ink/50 mt-1">
