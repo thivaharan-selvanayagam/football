@@ -1,5 +1,6 @@
 "use client";
-import { Suspense, useState, useRef } from "react";
+
+import { Suspense, useState, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { notFound } from "next/navigation";
 import FutCard from "@/components/FutCard";
@@ -55,6 +56,11 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
   const [selectedAddons, setSelectedAddons] = useState<string[]>(
     ADDONS.filter((a) => a.defaultOn).map((a) => a.id)
   );
+
+  const [isCustomClub, setIsCustomClub] = useState(false);
+const [customClubName, setCustomClubName] = useState("");
+const [clubBadge, setClubBadge] = useState<string | null>(null);
+const customBadgeRef = useRef<HTMLInputElement>(null);
 
   if (!product) return notFound();
 
@@ -225,26 +231,124 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
       )}
 
         {step === 2 && (
-          <StepWrap title="Club badge customisation" subtitle="Choose a club badge or upload a custom one.">
-            <Card>
-              <SectionLabel letter="C" title="Choose a club" />
-              <input placeholder="Search clubs name" className="w-full border border-black/10 rounded-lg px-4 py-3 mb-4 text-sm focus-ring" />
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {CLUBS.map((c) => (
-                  <button
-                    key={c}
-                    onClick={() => setClub(c)}
-                    className={`border rounded-full py-2 px-3 text-sm flex items-center gap-2 ${
-                      club === c ? "border-ink bg-ink text-chalk" : "border-black/10 text-ink/70"
-                    }`}
-                  >
-                    {club === c && "✓"} {c}
-                  </button>
-                ))}
-              </div>
-            </Card>
-          </StepWrap>
-        )}
+  <StepWrap title="Club badge customisation" subtitle="Choose a club badge or upload a custom one.">
+    <Card>
+      <SectionLabel letter="C" title="Choose a club" />
+      
+      {/* Dynamic Toggle Options */}
+      <div className="grid grid-cols-2 gap-2 mb-6 bg-cream/50 p-1 rounded-xl border border-black/5">
+        <button
+          type="button"
+          onClick={() => setIsCustomClub(false)}
+          className={`py-2 text-xs font-display rounded-lg transition ${
+            !isCustomClub ? "bg-white text-ink shadow-sm" : "text-ink/60 hover:text-ink"
+          }`}
+        >
+          Search Preset Clubs
+        </button>
+        <button
+          type="button"
+          onClick={() => setIsCustomClub(true)}
+          className={`py-2 text-xs font-display rounded-lg transition ${
+            isCustomClub ? "bg-white text-ink shadow-sm" : "text-ink/60 hover:text-ink"
+          }`}
+        >
+          + Custom Badge
+        </button>
+      </div>
+
+      {!isCustomClub ? (
+        /* STANDARD CLUB SEARCH LOGIC PANEL */
+        <div className="animate-fadeIn">
+          <input 
+            placeholder="Search clubs name" 
+            className="w-full border border-black/10 rounded-lg px-4 py-3 mb-4 text-sm focus-ring" 
+          />
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {CLUBS.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => {
+                  setClub(c);
+                  // Assuming your CLUBS object array map has placeholder images matching the asset title strings,
+                  // pass a static URL here, or default back to initials if using simple text values:
+                  setClubBadge(`/images/presets/${c.toLowerCase().replace(/\s+/g, "-")}.png`);
+                }}
+                className={`border rounded-full py-2 px-3 text-sm flex items-center gap-2 ${
+                  club === c ? "border-ink bg-ink text-chalk" : "border-black/10 text-ink/70"
+                }`}
+              >
+                {club === c && "✓"} {c}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : (
+        /* CUSTOM CREATOR FLOW INTERFACE PANEL */
+        <div className="space-y-4 animate-fadeIn">
+          {/* Custom Club Name Text Field Input */}
+          <div>
+            <label className="block text-xs text-ink/60 mb-1 font-medium">Custom Club Name</label>
+            <input
+              type="text"
+              value={customClubName}
+              onChange={(e) => {
+                setCustomClubName(e.target.value);
+                setClub(e.target.value); // Syncs standard state naming key variables
+              }}
+              placeholder="e.g. Tangalle FC"
+              className="w-full border border-black/10 rounded-lg px-4 py-2.5 text-sm text-ink focus-ring font-medium"
+            />
+          </div>
+
+          {/* Custom Badge Logo File Upload Section */}
+          <div>
+            <label className="block text-xs text-ink/60 mb-1.5 font-medium">Upload Badge Photo</label>
+            <div className="flex items-center gap-4">
+              {clubBadge ? (
+                <img 
+                  src={clubBadge} 
+                  alt="badge upload thumbnail" 
+                  className="w-12 h-12 rounded-full object-cover border border-black/10 p-0.5 bg-white shadow-sm" 
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-full bg-cream border border-dashed border-black/20 flex items-center justify-center text-ink/30 text-xs font-bold">
+                  LOGO
+                </div>
+              )}
+              
+              <button
+                type="button"
+                onClick={() => customBadgeRef.current?.click()}
+                className="flex-1 text-left border border-dashed border-black/20 rounded-lg px-4 py-3 text-xs text-ink/60 bg-white hover:border-ink/40 transition font-medium"
+              >
+                {clubBadge ? "Change emblem image" : "Click to select logo file (PNG/JPG)"}
+              </button>
+              
+              <input
+                ref={customBadgeRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                      setClubBadge(reader.result as string); // Feeds base64 file string data right to the card template mask!
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </Card>
+  </StepWrap>
+)}
 
         {step === 3 && (
           <StepWrap title="Country flag customisation" subtitle="Choose a country or upload a custom one.">

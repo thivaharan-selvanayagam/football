@@ -8,7 +8,7 @@ interface FutCardProps {
   gradient: [string, string];
   frameImage?: string;
   photo?: string | null;
-  clubInitial?: string;
+  clubBadge?: string | null; // ✨ Replaced clubInitial string with clubBadge photo URL string
   countryCode?: string;
   size?: number;
   textShiftY?: {
@@ -26,7 +26,7 @@ export default function FutCard({
   gradient,
   frameImage,
   photo,
-  clubInitial,
+  clubBadge, // ✨ Swapped here
   size = 260,
   textShiftY,
 }: FutCardProps) {
@@ -47,6 +47,11 @@ export default function FutCard({
 
         <clipPath id="shield-clip">
           <path d="M130 4 L246 36 L246 190 C246 270 196 320 130 347 C64 320 14 270 14 190 L14 36 Z" />
+        </clipPath>
+
+        {/* ✨ Circular clipping mask to ensure custom uploaded badges remain perfectly round */}
+        <clipPath id="badge-clip">
+          <circle cx="144" cy="308" r="8.5" />
         </clipPath>
       </defs>
 
@@ -77,7 +82,7 @@ export default function FutCard({
         )}
       </g>
 
-      {/* 1. OVERALL RATING & POSITION (Pushed further right to x="54" to clear the outer border line) */}
+      {/* 1. OVERALL RATING & POSITION */}
       <g transform={`translate(0, ${metaYShift})`}>
         <text 
           x="54" 
@@ -104,7 +109,7 @@ export default function FutCard({
         </text>
       </g>
 
-      {/* 2. PLAYER NAME (Lifted higher up to y="242" so it lands beautifully on the golden banner) */}
+      {/* 2. PLAYER NAME */}
       <g transform={`translate(0, ${nameYShift})`}>
         <text
           x="130"
@@ -119,10 +124,9 @@ export default function FutCard({
         </text>
       </g>
 
-      {/* 3. STATS ATTRIBUTES MATRIX (Compressed step gap from 34.5 down to 32.5 to pull everything inward) */}
+      {/* 3. STATS ATTRIBUTES MATRIX */}
       <g transform={`translate(0, ${statsYShift})`}>
         {Object.entries(attrs).map(([k, v], i) => {
-          // Starting x offset moved to 48, step changed to 33. This keeps PAC and PHY safe from frame borders!
           const x = 48 + i * 33; 
           const yBase = 276;
 
@@ -139,29 +143,32 @@ export default function FutCard({
         })}
       </g>
 
-      {/* 4. BOTTOM CENTER BADGES (Perfected vertical placement between stats and shield tip) */}
+      {/* 4. BOTTOM CENTER BADGES */}
       <g transform="translate(0, -1)"> 
-        {/* England Flag - Centered horizontally at x="104" and tuned to y="301" */}
+        {/* England Flag */}
         <rect x="104" y="301" width="26" height="15" fill="#fff" stroke="#3c3f25" strokeWidth="0.5" />
         <line x1="117" y1="301" x2="117" y2="316" stroke="#da291c" strokeWidth="2.5" />
         <line x1="104" y1="308" x2="130" y2="308" stroke="#da291c" strokeWidth="2.5" />
 
-        {/* Dynamic Club Badge - Balanced horizontally at cx="144" and tuned to cy="308" */}
-        {clubInitial && (
+        {/* Dynamic Club Badge Image Layer */}
+        {clubBadge ? (
           <g>
-            <circle cx="144" cy="308" r="8.5" fill="rgba(255,255,255,0.95)" stroke="#3c3f25" strokeWidth="0.5" />
-            <text 
-              x="144" 
-              y="311" 
-              fontFamily="Oswald, sans-serif" 
-              fontSize="8" 
-              fontWeight="700" 
-              fill="#3c3f25" 
-              textAnchor="middle"
-            >
-              {clubInitial}
-            </text>
+            {/* White base plate circle ring */}
+            <circle cx="144" cy="308" r="8.5" fill="#fff" stroke="#3c3f25" strokeWidth="0.5" />
+            {/* Rendered custom image, clipped to stay perfectly round */}
+            <image
+              href={clubBadge}
+              x="135.5"
+              y="299.5"
+              width="17"
+              height="17"
+              clipPath="url(#badge-clip)"
+              preserveAspectRatio="xMidYMid slice"
+            />
           </g>
+        ) : (
+          /* Dashed empty fallback circle placeholder if no custom badge or searched club is selected yet */
+          <circle cx="144" cy="308" r="8.5" fill="rgba(255,255,255,0.3)" stroke="#3c3f25" strokeWidth="0.5" strokeDasharray="2 2" />
         )}
       </g>
     </svg>
