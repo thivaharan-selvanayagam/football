@@ -11,14 +11,13 @@ import {
 import { formatRs } from "@/lib/format";
 import { useCart, CartItem } from "@/lib/cart";
 import ImageCropper from "@/components/ImageCropper";
-import { getCroppedImg } from "@/lib/cropImage"; // ✨ Import our new processing helper
-import EditImageModal from "@/components/EditImageModal"; // ✨ Import the new modal overlay
+import { getCroppedImg } from "@/lib/cropImage"; 
+import EditImageModal from "@/components/EditImageModal"; 
 
 type Attrs = { PAC: number; SHO: number; PAS: number; DRI: number; DEF: number; PHY: number };
 
 const STEP_PCT = [20, 40, 60, 80, 90];
 
-// ✨ Centralized alignment offsets engineered specifically for your webp frame images
 const CARD_LAYOUT_SHIFTS = {
   meta: 0,
   name: 0,
@@ -58,9 +57,9 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
   );
 
   const [isCustomClub, setIsCustomClub] = useState(false);
-const [customClubName, setCustomClubName] = useState("");
-const [clubBadge, setClubBadge] = useState<string | null>(null);
-const customBadgeRef = useRef<HTMLInputElement>(null);
+  const [customClubName, setCustomClubName] = useState("");
+  const [clubBadge, setClubBadge] = useState<string | null>(null);
+  const customBadgeRef = useRef<HTMLInputElement>(null);
 
   if (!product) return notFound();
 
@@ -85,17 +84,17 @@ const customBadgeRef = useRef<HTMLInputElement>(null);
     setOverall(avg);
   };
 
- const onPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const file = e.target.files?.[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = () => {
-      setRawUpload(reader.result as string);
-      setIsModalOpen(true); // Open the popup instantly when the file finishes loading!
-    };
-    reader.readAsDataURL(file);
-  }
-}
+  const onPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setRawUpload(reader.result as string);
+        setIsModalOpen(true); 
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const toggleAddon = (id: string) => {
     setSelectedAddons((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
@@ -133,9 +132,8 @@ const customBadgeRef = useRef<HTMLInputElement>(null);
     }
   };
 
-  const clubInitial = club.slice(0, 2).toUpperCase();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [rawUpload, setRawUpload] = useState<string | null>(null); // Keeps track of uncropped original upload
+  const [rawUpload, setRawUpload] = useState<string | null>(null); 
 
   return (
     <div className="min-h-screen bg-cream grid md:grid-cols-2">
@@ -143,212 +141,203 @@ const customBadgeRef = useRef<HTMLInputElement>(null);
       <div className="px-6 sm:px-12 py-12 max-w-xl mx-auto md:mx-0 md:ml-auto w-full">
         <p className="font-display text-7xl text-ink/10 mb-2 leading-none">{step}</p>
 
-       {step === 1 && (
-        <StepWrap title="Basic information" subtitle="Enter name, upload an image and choose a position.">
-          <Card>
-            <SectionLabel letter="A" title="Name & image upload" />
-            <label className="block text-xs text-ink/60 mb-1">Enter name</label>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Thivaharan"
-              className="w-full border border-black/10 rounded-lg px-4 py-3 mb-4 font-display text-lg text-ink focus-ring"
-            />
-            
-            <div className="flex items-center gap-4">
-              {photo ? (
-                <img src={photo} alt="upload" className="w-16 h-16 rounded-lg object-cover border border-black/5" />
-              ) : (
-                <div className="w-16 h-16 rounded-lg bg-cream border border-dashed border-black/20" />
-              )}
-              
-              {/* Trigger Button handles both regular file picking or invoking your side-by-side modal popup */}
-              <button
-                type="button"
-                onClick={() => {
-                  if (photo) {
-                    setIsModalOpen(true); // Re-opens your gorgeous side-by-side editing tool modal!
-                  } else {
-                    fileRef.current?.click();
-                  }
-                }}
-                className="flex-1 border border-dashed border-black/20 rounded-lg py-4 text-sm text-ink/60 hover:border-ink/40 transition font-medium"
-              >
-                {photo ? "Edit Photo Framing" : "Click to upload a photo"}
-              </button>
-              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onPhotoChange} />
-            </div>
-
-            {/* ✨ RENDER FULL SIDE-BY-SIDE MODAL OVERLAY SEPARATELY OUTSIDE INLINE MARGINS ✨ */}
-            {rawUpload && (
-              <EditImageModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                imageSrc={rawUpload}
-                onSave={(croppedRes) => setPhoto(croppedRes)} // Commits canvas string into the app state core variables
-                cardData={{
-                  name: name || "Player",
-                  position: position,
-                  overall: overall,
-                  attrs: attrs,
-                  gradient: product.gradient,
-                  frameImage: product.frameImage,
-                }}
+        {step === 1 && (
+          <StepWrap title="Basic information" subtitle="Enter name, upload an image and choose a position.">
+            <Card>
+              <SectionLabel letter="A" title="Name & image upload" />
+              <label className="block text-xs text-ink/60 mb-1">Enter name</label>
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Thivaharan"
+                className="w-full border border-black/10 rounded-lg px-4 py-3 mb-4 font-display text-lg text-ink focus-ring"
               />
-            )}
-          </Card>
+              
+              <div className="flex items-center gap-4">
+                {photo ? (
+                  <img src={photo} alt="upload" className="w-16 h-16 rounded-lg object-cover border border-black/5" />
+                ) : (
+                  <div className="w-16 h-16 rounded-lg bg-cream border border-dashed border-black/20" />
+                )}
+                
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (photo) {
+                      setIsModalOpen(true); 
+                    } else {
+                      fileRef.current?.click();
+                    }
+                  }}
+                  className="flex-1 border border-dashed border-black/20 rounded-lg py-4 text-sm text-ink/60 hover:border-ink/40 transition font-medium"
+                >
+                  {photo ? "Edit Photo Framing" : "Click to upload a photo"}
+                </button>
+                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onPhotoChange} />
+              </div>
 
-          <Card>
-            <SectionLabel letter="B" title="Choose a position" />
-            <div className="flex gap-6 text-sm font-display mb-4 border-b border-black/5">
-              {(Object.keys(POSITIONS) as (keyof typeof POSITIONS)[]).map((g) => (
-                <button
-                  key={g}
-                  type="button"
-                  onClick={() => { setPosGroup(g); setPosition(POSITIONS[g][0]); }}
-                  className={`pb-3 -mb-px border-b-2 transition ${posGroup === g ? "border-ink text-ink" : "border-transparent text-ink/40"}`}
-                >
-                  {g}
-                </button>
-              ))}
-            </div>
-            <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
-              {POSITIONS[posGroup].map((p) => (
-                <button
-                  key={p}
-                  type="button"
-                  onClick={() => setPosition(p)}
-                  className={`border rounded-lg py-2 text-sm flex items-center justify-center gap-1 transition ${
-                    position === p ? "border-ink bg-ink text-chalk" : "border-black/10 text-ink/70"
-                  }`}
-                >
-                  {position === p && "✓"} {p}
-                </button>
-              ))}
-            </div>
-          </Card>
-        </StepWrap>
-      )}
+              {rawUpload && (
+                <EditImageModal
+                  isOpen={isModalOpen}
+                  onClose={() => setIsModalOpen(false)}
+                  imageSrc={rawUpload}
+                  onSave={(croppedRes) => setPhoto(croppedRes)} 
+                  cardData={{
+                    name: name || "Player",
+                    position: position,
+                    overall: overall,
+                    attrs: attrs,
+                    gradient: product.gradient,
+                    frameImage: product.frameImage,
+                  }}
+                />
+              )}
+            </Card>
+
+            <Card>
+              <SectionLabel letter="B" title="Choose a position" />
+              <div className="flex gap-6 text-sm font-display mb-4 border-b border-black/5">
+                {(Object.keys(POSITIONS) as (keyof typeof POSITIONS)[]).map((g) => (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => { setPosGroup(g); setPosition(POSITIONS[g][0]); }}
+                    className={`pb-3 -mb-px border-b-2 transition ${posGroup === g ? "border-ink text-ink" : "border-transparent text-ink/40"}`}
+                  >
+                    {g}
+                  </button>
+                ))}
+              </div>
+              <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+                {POSITIONS[posGroup].map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setPosition(p)}
+                    className={`border rounded-lg py-2 text-sm flex items-center justify-center gap-1 transition ${
+                      position === p ? "border-ink bg-ink text-chalk" : "border-black/10 text-ink/70"
+                    }`}
+                  >
+                    {position === p && "✓"} {p}
+                  </button>
+                ))}
+              </div>
+            </Card>
+          </StepWrap>
+        )}
 
         {step === 2 && (
-  <StepWrap title="Club badge customisation" subtitle="Choose a club badge or upload a custom one.">
-    <Card>
-      <SectionLabel letter="C" title="Choose a club" />
-      
-      {/* Dynamic Toggle Options */}
-      <div className="grid grid-cols-2 gap-2 mb-6 bg-cream/50 p-1 rounded-xl border border-black/5">
-        <button
-          type="button"
-          onClick={() => setIsCustomClub(false)}
-          className={`py-2 text-xs font-display rounded-lg transition ${
-            !isCustomClub ? "bg-white text-ink shadow-sm" : "text-ink/60 hover:text-ink"
-          }`}
-        >
-          Search Preset Clubs
-        </button>
-        <button
-          type="button"
-          onClick={() => setIsCustomClub(true)}
-          className={`py-2 text-xs font-display rounded-lg transition ${
-            isCustomClub ? "bg-white text-ink shadow-sm" : "text-ink/60 hover:text-ink"
-          }`}
-        >
-          + Custom Badge
-        </button>
-      </div>
+          <StepWrap title="Club badge customisation" subtitle="Choose a club badge or upload a custom one.">
+            <Card>
+              <SectionLabel letter="C" title="Choose a club" />
+              
+              <div className="grid grid-cols-2 gap-2 mb-6 bg-cream/50 p-1 rounded-xl border border-black/5">
+                <button
+                  type="button"
+                  onClick={() => setIsCustomClub(false)}
+                  className={`py-2 text-xs font-display rounded-lg transition ${
+                    !isCustomClub ? "bg-white text-ink shadow-sm" : "text-ink/60 hover:text-ink"
+                  }`}
+                >
+                  Search Preset Clubs
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsCustomClub(true)}
+                  className={`py-2 text-xs font-display rounded-lg transition ${
+                    isCustomClub ? "bg-white text-ink shadow-sm" : "text-ink/60 hover:text-ink"
+                  }`}
+                >
+                  + Custom Badge
+                </button>
+              </div>
 
-      {!isCustomClub ? (
-        /* STANDARD CLUB SEARCH LOGIC PANEL */
-        <div className="animate-fadeIn">
-          <input 
-            placeholder="Search clubs name" 
-            className="w-full border border-black/10 rounded-lg px-4 py-3 mb-4 text-sm focus-ring" 
-          />
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {CLUBS.map((c) => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => {
-                  setClub(c);
-                  // Assuming your CLUBS object array map has placeholder images matching the asset title strings,
-                  // pass a static URL here, or default back to initials if using simple text values:
-                  setClubBadge(`/images/presets/${c.toLowerCase().replace(/\s+/g, "-")}.png`);
-                }}
-                className={`border rounded-full py-2 px-3 text-sm flex items-center gap-2 ${
-                  club === c ? "border-ink bg-ink text-chalk" : "border-black/10 text-ink/70"
-                }`}
-              >
-                {club === c && "✓"} {c}
-              </button>
-            ))}
-          </div>
-        </div>
-      ) : (
-        /* CUSTOM CREATOR FLOW INTERFACE PANEL */
-        <div className="space-y-4 animate-fadeIn">
-          {/* Custom Club Name Text Field Input */}
-          <div>
-            <label className="block text-xs text-ink/60 mb-1 font-medium">Custom Club Name</label>
-            <input
-              type="text"
-              value={customClubName}
-              onChange={(e) => {
-                setCustomClubName(e.target.value);
-                setClub(e.target.value); // Syncs standard state naming key variables
-              }}
-              placeholder="e.g. Tangalle FC"
-              className="w-full border border-black/10 rounded-lg px-4 py-2.5 text-sm text-ink focus-ring font-medium"
-            />
-          </div>
-
-          {/* Custom Badge Logo File Upload Section */}
-          <div>
-            <label className="block text-xs text-ink/60 mb-1.5 font-medium">Upload Badge Photo</label>
-            <div className="flex items-center gap-4">
-              {clubBadge ? (
-                <img 
-                  src={clubBadge} 
-                  alt="badge upload thumbnail" 
-                  className="w-12 h-12 rounded-full object-cover border border-black/10 p-0.5 bg-white shadow-sm" 
-                />
+              {!isCustomClub ? (
+                <div className="animate-fadeIn">
+                  <input 
+                    placeholder="Search clubs name" 
+                    className="w-full border border-black/10 rounded-lg px-4 py-3 mb-4 text-sm focus-ring" 
+                  />
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {CLUBS.map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => {
+                          setClub(c);
+                          setClubBadge(`/images/presets/${c.toLowerCase().replace(/\s+/g, "-")}.png`);
+                        }}
+                        className={`border rounded-full py-2 px-3 text-sm flex items-center gap-2 ${
+                          club === c ? "border-ink bg-ink text-chalk" : "border-black/10 text-ink/70"
+                        }`}
+                      >
+                        {club === c && "✓"} {c}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               ) : (
-                <div className="w-12 h-12 rounded-full bg-cream border border-dashed border-black/20 flex items-center justify-center text-ink/30 text-xs font-bold">
-                  LOGO
+                <div className="space-y-4 animate-fadeIn">
+                  <div>
+                    <label className="block text-xs text-ink/60 mb-1 font-medium">Custom Club Name</label>
+                    <input
+                      type="text"
+                      value={customClubName}
+                      onChange={(e) => {
+                        setCustomClubName(e.target.value);
+                        setClub(e.target.value); 
+                      }}
+                      placeholder="e.g. Tangalle FC"
+                      className="w-full border border-black/10 rounded-lg px-4 py-2.5 text-sm text-ink focus-ring font-medium"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-ink/60 mb-1.5 font-medium">Upload Badge Photo</label>
+                    <div className="flex items-center gap-4">
+                      {clubBadge ? (
+                        <img 
+                          src={clubBadge} 
+                          alt="badge upload thumbnail" 
+                          className="w-12 h-12 rounded-full object-cover border border-black/10 p-0.5 bg-white shadow-sm" 
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-cream border border-dashed border-black/20 flex items-center justify-center text-ink/30 text-xs font-bold">
+                          LOGO
+                        </div>
+                      )}
+                      
+                      <button
+                        type="button"
+                        onClick={() => customBadgeRef.current?.click()}
+                        className="flex-1 text-left border border-dashed border-black/20 rounded-lg px-4 py-3 text-xs text-ink/60 bg-white hover:border-ink/40 transition font-medium"
+                      >
+                        {clubBadge ? "Change emblem image" : "Click to select logo file (PNG/JPG)"}
+                      </button>
+                      
+                      <input
+                        ref={customBadgeRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                              setClubBadge(reader.result as string); 
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
                 </div>
               )}
-              
-              <button
-                type="button"
-                onClick={() => customBadgeRef.current?.click()}
-                className="flex-1 text-left border border-dashed border-black/20 rounded-lg px-4 py-3 text-xs text-ink/60 bg-white hover:border-ink/40 transition font-medium"
-              >
-                {clubBadge ? "Change emblem image" : "Click to select logo file (PNG/JPG)"}
-              </button>
-              
-              <input
-                ref={customBadgeRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                      setClubBadge(reader.result as string); // Feeds base64 file string data right to the card template mask!
-                    };
-                    reader.readAsDataURL(file);
-                  }
-                }}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-    </Card>
-  </StepWrap>
-)}
+            </Card>
+          </StepWrap>
+        )}
 
         {step === 3 && (
           <StepWrap title="Country flag customisation" subtitle="Choose a country or upload a custom one.">
@@ -491,17 +480,17 @@ const customBadgeRef = useRef<HTMLInputElement>(null);
         </p>
         <span className="text-[11px] bg-cream text-ink/60 px-3 py-1 rounded-full mb-6">Preview Only</span>
         
-        {/* ✨ UPDATED PROP ROUTE FOR YOUR FRAME IMAGE AND OFFSET LOCKS BELOW ✨ */}
+        {/* ✨ FIX: clubInitial={clubInitial} swapped out for clubBadge={clubBadge} below ✨ */}
         <FutCard
           name={name || "Player"}
           position={position}
           overall={overall}
           attrs={attrs}
           gradient={product.gradient}
-          frameImage={product.frameImage} // ✨ PASS THE CUSTOM WEBPCARD ASSET LAYER HERE
-          textShiftY={CARD_LAYOUT_SHIFTS} // ✨ ATTACH TEXT SHIFT ALIGNMENT
+          frameImage={product.frameImage} 
+          textShiftY={CARD_LAYOUT_SHIFTS} 
           photo={photo}
-          clubInitial={clubInitial}
+          clubBadge={clubBadge}
           size={260}
         />
         
