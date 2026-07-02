@@ -143,7 +143,7 @@ export default function FutCard({
         })}
       </g>
 
-      {/* 4. BOTTOM CENTER BADGES */}
+      {/* 4. BOTTOM CENTER BADGES (Full Native Shape Rendering) */}
       <g transform="translate(0, -1)"> 
         {/* England Flag */}
         <rect x="104" y="301" width="26" height="15" fill="#fff" stroke="#3c3f25" strokeWidth="0.5" />
@@ -153,21 +153,18 @@ export default function FutCard({
         {/* Dynamic Club Badge Image Layer */}
         {clubBadge ? (
           <g>
-            {/* White base plate circle ring */}
-            <circle cx="144" cy="308" r="8.5" fill="#fff" stroke="#3c3f25" strokeWidth="0.5" />
-            {/* Rendered custom image, clipped to stay perfectly round */}
+            {/* Removed the <circle> border and clipPath mask so the full logo renders cleanly */}
             <image
               href={clubBadge}
               x="135.5"
               y="299.5"
               width="17"
               height="17"
-              clipPath="url(#badge-clip)"
-              preserveAspectRatio="xMidYMid slice"
+              preserveAspectRatio="xMidYMid meet" // 'meet' ensures the full aspect ratio fits without crop distortion
             />
           </g>
         ) : (
-          /* Dashed empty fallback circle placeholder if no custom badge or searched club is selected yet */
+          /* Soft dash alignment guide if empty */
           <circle cx="144" cy="308" r="8.5" fill="rgba(255,255,255,0.3)" stroke="#3c3f25" strokeWidth="0.5" strokeDasharray="2 2" />
         )}
       </g>

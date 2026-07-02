@@ -259,13 +259,19 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
                     className="w-full border border-black/10 rounded-lg px-4 py-3 mb-4 text-sm focus-ring" 
                   />
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {/* // Inside your app/cards/[slug]/customize/page.tsx file (around Step 2 logic): */}
                     {CLUBS.map((c) => (
                       <button
                         key={c}
                         type="button"
                         onClick={() => {
-                          setClub(c);
-                          setClubBadge(`/images/presets/${c.toLowerCase().replace(/\s+/g, "-")}.png`);
+                          setClub(c); // Sets the text name (e.g., "Barcelona")
+                          
+                          /* This dynamically matches the file name based on your naming format.
+                            Example: "Manchester United" becomes "/images/presets/manchester-united.png"
+                          */
+                          const logoPath = `/images/presets/${c.toLowerCase().replace(/\s+/g, "-")}.png`;
+                          setClubBadge(logoPath);
                         }}
                         className={`border rounded-full py-2 px-3 text-sm flex items-center gap-2 ${
                           club === c ? "border-ink bg-ink text-chalk" : "border-black/10 text-ink/70"
