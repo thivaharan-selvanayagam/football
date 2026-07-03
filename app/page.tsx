@@ -3,6 +3,7 @@ import FutCard from "@/components/FutCard";
 import { products } from "@/lib/data";
 import { formatRs } from "@/lib/format";
 import Hero from "@/components/Hero";
+import ProductFeature from "@/components/ProductFeature";
 
 const sampleAttrs = { PAC: 88, SHO: 91, PAS: 84, DRI: 90, DEF: 38, PHY: 76 };
 
@@ -12,6 +13,7 @@ export default function HomePage() {
     <div>
       {/* Hero */}
       <Hero />
+      <ProductFeature />
       <section className="relative overflow-hidden bg-ink text-chalk">
         <div className="absolute inset-0 opacity-[0.08] bg-grain [background-size:18px_18px]" />
         <div className="max-w-7xl mx-auto px-6 py-20 md:py-28 grid md:grid-cols-2 gap-12 items-center relative">
