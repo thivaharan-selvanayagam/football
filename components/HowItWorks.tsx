@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface StepItem {
   id: number;
@@ -12,6 +13,9 @@ interface StepItem {
 }
 
 export default function HowItWorks() {
+  // ✨ FIX: Hook initialized correctly inside the functional component body
+  const router = useRouter();
+
   const steps: StepItem[] = [
     {
       id: 1,
@@ -118,7 +122,7 @@ export default function HowItWorks() {
       {/* STEP BOTTOM ACTIONS FOOTER ROW */}
       <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
         <Link
-          href="/shop"
+          href="/cards"
           className="bg-[#232323] hover:bg-black text-white px-6 py-3.5 rounded-xl text-sm font-bold tracking-wide transition shadow-md"
         >
           Get started free
@@ -126,7 +130,7 @@ export default function HowItWorks() {
         <button
           type="button"
           onClick={() => {
-            window.scrollTo({ top: 0, behavior: "smooth" });
+            router.push("/faq"); 
           }}
           className="bg-white hover:bg-neutral-50 text-neutral-800 font-bold px-6 py-3.5 rounded-xl text-sm border border-neutral-200 transition tracking-wide"
         >

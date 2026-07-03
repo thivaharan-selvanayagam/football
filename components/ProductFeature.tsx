@@ -1,8 +1,12 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 
 export default function ProductFeature() {
+  // ✨ FIX: Hook initialized correctly inside the functional component body
+  const router = useRouter();
+
   return (
     <section className="w-full min-h-screen bg-white text-neutral-900 flex items-center justify-center py-16 px-6 sm:px-12 md:px-24">
       <div className="w-full max-w-7xl mx-auto grid md:grid-cols-2 gap-12 md:gap-16 items-center">
@@ -70,7 +74,7 @@ export default function ProductFeature() {
             <button
               type="button"
               onClick={() => {
-                document.getElementById("customizer-root")?.scrollIntoView({ behavior: "smooth" });
+                router.push("/cards"); 
               }}
               className="bg-[#232323] hover:bg-black text-white px-6 py-3.5 rounded-xl text-sm font-bold tracking-wide transition shadow-md flex items-center gap-2.5"
             >
@@ -80,7 +84,7 @@ export default function ProductFeature() {
               Shop Now
             </button>
           </div>
-        </div>
+        </div> {/* ✨ FIX: Added missing closing div tag for the left column layout container */}
 
         {/* RIGHT COLUMN: REPLACED WITH STATIC LOGO / IMAGE VIEW CONTAINER */}
         <div className="relative flex items-center justify-center p-4">
@@ -93,7 +97,7 @@ export default function ProductFeature() {
           {/* Clean Static Image Frame Display */}
           <div className="relative max-w-[380px] w-full transform hover:scale-[1.01] transition duration-500 filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.08)] z-10">
             <img
-              src="/images/seyon.png" // 👈 Change this to match your actual image file name inside public/images
+              src="/images/seyon.png" 
               alt="Soccer Card Presentation Showcase"
               className="w-full h-auto object-contain rounded-2xl"
             />

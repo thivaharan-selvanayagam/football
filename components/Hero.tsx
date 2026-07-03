@@ -45,13 +45,13 @@ export default function Hero() {
           {/* Primary & Secondary Twin CTA Action Buttons */}
           <div className="flex items-center gap-4 pt-2">
             <Link 
-              href="/shop" 
+              href="/cards" 
               className="bg-white hover:bg-neutral-200 text-black font-bold px-8 py-4 rounded-xl text-sm transition shadow-lg tracking-wide"
             >
               Buy Now
             </Link>
             <Link 
-              href="/about" 
+              href="/faq" 
               className="bg-transparent hover:bg-white/10 text-white font-bold px-8 py-4 rounded-xl text-sm border border-white/30 transition tracking-wide"
             >
               Learn More
