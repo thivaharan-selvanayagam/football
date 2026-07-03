@@ -60,6 +60,10 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
   const [customClubName, setCustomClubName] = useState("");
   const [clubBadge, setClubBadge] = useState<string | null>(null);
   const customBadgeRef = useRef<HTMLInputElement>(null);
+  const [countryFlag, setCountryFlag] = useState<string | null>("/images/flags/canada.png"); // Set your preferred baseline default flag asset path
+  const [isCustomCountry, setIsCustomCountry] = useState(false);
+const [customCountryName, setCustomCountryName] = useState("");
+const customFlagRef = useRef<HTMLInputElement>(null);
 
   if (!product) return notFound();
 
@@ -346,26 +350,123 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
         )}
 
         {step === 3 && (
-          <StepWrap title="Country flag customisation" subtitle="Choose a country or upload a custom one.">
-            <Card>
-              <SectionLabel letter="D" title="Choose a country flag" />
-              <input placeholder="Search country name" className="w-full border border-black/10 rounded-lg px-4 py-3 mb-4 text-sm focus-ring" />
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {COUNTRIES.map((c) => (
-                  <button
-                    key={c}
-                    onClick={() => setCountry(c)}
-                    className={`border rounded-full py-2 px-3 text-sm flex items-center gap-2 ${
-                      country === c ? "border-ink bg-ink text-chalk" : "border-black/10 text-ink/70"
-                    }`}
-                  >
-                    {country === c && "✓"} {c}
-                  </button>
-                ))}
-              </div>
-            </Card>
-          </StepWrap>
-        )}
+  <StepWrap title="Country flag customisation" subtitle="Choose a country flag or upload a custom one.">
+    <Card>
+      <SectionLabel letter="D" title="Choose a country flag" />
+      
+      {/* Dynamic Toggle Options */}
+      <div className="grid grid-cols-2 gap-2 mb-6 bg-cream/50 p-1 rounded-xl border border-black/5">
+        <button
+          type="button"
+          onClick={() => setIsCustomCountry(false)}
+          className={`py-2 text-xs font-display rounded-lg transition ${
+            !isCustomCountry ? "bg-white text-ink shadow-sm" : "text-ink/60 hover:text-ink"
+          }`}
+        >
+          Search Preset Flags
+        </button>
+        <button
+          type="button"
+          onClick={() => setIsCustomCountry(true)}
+          className={`py-2 text-xs font-display rounded-lg transition ${
+            isCustomCountry ? "bg-white text-ink shadow-sm" : "text-ink/60 hover:text-ink"
+          }`}
+        >
+          + Custom Flag
+        </button>
+      </div>
+
+      {!isCustomCountry ? (
+        /* STANDARD COUNTRY SEARCH LOGIC PANEL */
+        <div className="animate-fadeIn">
+          <input 
+            placeholder="Search country name" 
+            className="w-full border border-black/10 rounded-lg px-4 py-3 mb-4 text-sm focus-ring" 
+          />
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {COUNTRIES.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => {
+                  setCountry(c);
+                  // Auto-calculates your local public directory path file string asset dynamically
+                  setCountryFlag(`/images/flags/${c.toLowerCase().replace(/\s+/g, "-")}.png`);
+                }}
+                className={`border rounded-full py-2 px-3 text-sm flex items-center gap-2 ${
+                  country === c ? "border-ink bg-ink text-chalk" : "border-black/10 text-ink/70"
+                }`}
+              >
+                {country === c && "✓"} {c}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : (
+        /* CUSTOM FLAG FILE UPLOAD PANEL */
+        <div className="space-y-4 animate-fadeIn">
+          {/* Custom Country Name Text Field Input */}
+          <div>
+            <label className="block text-xs text-ink/60 mb-1 font-medium">Custom Country Name</label>
+            <input
+              type="text"
+              value={customCountryName}
+              onChange={(e) => {
+                setCustomCountryName(e.target.value);
+                setCountry(e.target.value); // Syncs core string state
+              }}
+              placeholder="e.g. Sri Lanka"
+              className="w-full border border-black/10 rounded-lg px-4 py-2.5 text-sm text-ink focus-ring font-medium"
+            />
+          </div>
+
+          {/* Custom Country Flag Image File Upload Area */}
+          <div>
+            <label className="block text-xs text-ink/60 mb-1.5 font-medium">Upload Flag Photo</label>
+            <div className="flex items-center gap-4">
+              {countryFlag ? (
+                <img 
+                  src={countryFlag} 
+                  alt="flag thumbnail preview" 
+                  className="w-12 h-8 rounded object-cover border border-black/10 shadow-sm" 
+                />
+              ) : (
+                <div className="w-12 h-8 bg-cream border border-dashed border-black/20 flex items-center justify-center text-ink/30 text-[9px] font-bold">
+                  FLAG
+                </div>
+              )}
+              
+              <button
+                type="button"
+                onClick={() => customFlagRef.current?.click()}
+                className="flex-1 text-left border border-dashed border-black/20 rounded-lg px-4 py-3 text-xs text-ink/60 bg-white hover:border-ink/40 transition font-medium"
+              >
+                {countryFlag ? "Change flag image" : "Click to select logo file (PNG/JPG)"}
+              </button>
+              
+              <input
+                ref={customFlagRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                      setCountryFlag(reader.result as string); // Feeds base64 file string straight to SVG <image> card layer
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </Card>
+  </StepWrap>
+)}
 
         {step === 4 && (
           <StepWrap title="Attributes customisation" subtitle="Customise attributes and ratings or randomise them all.">
