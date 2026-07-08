@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useRef, useCallback } from "react";
+import { Suspense, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { notFound } from "next/navigation";
 import FutCard from "@/components/FutCard";
@@ -10,19 +10,25 @@ import {
 } from "@/lib/data";
 import { formatRs } from "@/lib/format";
 import { useCart, CartItem } from "@/lib/cart";
-import ImageCropper from "@/components/ImageCropper";
-import { getCroppedImg } from "@/lib/cropImage"; 
 import EditImageModal from "@/components/EditImageModal"; 
 
 type Attrs = { PAC: number; SHO: number; PAS: number; DRI: number; DEF: number; PHY: number };
 
-const STEP_PCT = [20, 40, 60, 80, 90];
+const STEP_PCT = [25, 50, 75, 100];
 
 const CARD_LAYOUT_SHIFTS = {
   meta: 0,
   name: 0,
   stats: 0,
 };
+
+// Preset font colors configuration array
+const PRESET_COLORS = [
+  { name: "Original", hex: "#3c3f25" },
+  { name: "Gold", hex: "#caa84a" },
+  { name: "Chalk White", hex: "#ffffff" },
+  { name: "Midnight Black", hex: "#111111" }
+];
 
 export default function CustomizePage({ params }: { params: { slug: string } }) {
   return (
@@ -33,7 +39,9 @@ export default function CustomizePage({ params }: { params: { slug: string } }) 
 }
 
 function CustomizeInner({ params }: { params: { slug: string } }) {
-  const product = getProduct(params.slug);
+  const slug = params?.slug || "";
+  const product = getProduct(slug);
+  
   const router = useRouter();
   const search = useSearchParams();
   const { addItem } = useCart();
@@ -45,13 +53,13 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
   const [step, setStep] = useState(1);
   const [name, setName] = useState("");
   const [photo, setPhoto] = useState<string | null>(null);
+  const [textColor, setTextColor] = useState("#3c3f25"); // ✨ New font color state track
   const [posGroup, setPosGroup] = useState<keyof typeof POSITIONS>("Midfield");
   const [position, setPosition] = useState("CAM");
   const [club, setClub] = useState("Barcelona");
   const [country, setCountry] = useState("Canada");
   const [attrs, setAttrs] = useState<Attrs>({ PAC: 50, SHO: 70, PAS: 30, DRI: 47, DEF: 58, PHY: 46 });
   const [overall, setOverall] = useState(51);
-  const [confirmed, setConfirmed] = useState(false);
   const [selectedAddons, setSelectedAddons] = useState<string[]>(
     ADDONS.filter((a) => a.defaultOn).map((a) => a.id)
   );
@@ -60,10 +68,10 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
   const [customClubName, setCustomClubName] = useState("");
   const [clubBadge, setClubBadge] = useState<string | null>(null);
   const customBadgeRef = useRef<HTMLInputElement>(null);
-  const [countryFlag, setCountryFlag] = useState<string | null>("/images/flags/canada.png"); // Set your preferred baseline default flag asset path
+  const [countryFlag, setCountryFlag] = useState<string | null>("/images/flags/canada.png");
   const [isCustomCountry, setIsCustomCountry] = useState(false);
-const [customCountryName, setCustomCountryName] = useState("");
-const customFlagRef = useRef<HTMLInputElement>(null);
+  const [customCountryName, setCustomCountryName] = useState("");
+  const customFlagRef = useRef<HTMLInputElement>(null);
 
   if (!product) return notFound();
 
@@ -106,13 +114,11 @@ const customFlagRef = useRef<HTMLInputElement>(null);
 
   const canNext = () => {
     if (step === 1) return name.trim().length > 0;
-    if (step === 4) return confirmed;
     return true;
   };
 
   const handleNext = () => {
-    if (step < 5) setStep(step + 1);
-    else {
+    if (step === 4) {
       const item: CartItem = {
         id: `${Date.now()}`,
         productSlug: product.slug,
@@ -130,14 +136,18 @@ const customFlagRef = useRef<HTMLInputElement>(null);
         addonsPrice,
         qty: 1,
         gradient: product.gradient,
+        // ✨ Note: text color property context can be read by checkout items map array here if needed
       };
       addItem(item);
       router.push("/cart");
+    } else {
+      setStep(step + 1);
     }
   };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [rawUpload, setRawUpload] = useState<string | null>(null); 
+  const [searchQuery, setSearchQuery] = useState("");
 
   return (
     <div className="min-h-screen bg-cream grid md:grid-cols-2">
@@ -157,7 +167,7 @@ const customFlagRef = useRef<HTMLInputElement>(null);
                 className="w-full border border-black/10 rounded-lg px-4 py-3 mb-4 font-display text-lg text-ink focus-ring"
               />
               
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 mb-6">
                 {photo ? (
                   <img src={photo} alt="upload" className="w-16 h-16 rounded-lg object-cover border border-black/5" />
                 ) : (
@@ -178,6 +188,37 @@ const customFlagRef = useRef<HTMLInputElement>(null);
                   {photo ? "Edit Photo Framing" : "Click to upload a photo"}
                 </button>
                 <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onPhotoChange} />
+              </div>
+
+              {/* ✨ NEW CUSTOM FONT COLOR SELECTOR CONTAINER */}
+              <div className="border-t border-black/5 pt-4">
+                <label className="block text-xs text-ink/60 mb-2 font-medium">Card Font Color</label>
+                <div className="flex flex-wrap items-center gap-2">
+                  {PRESET_COLORS.map((col) => (
+                    <button
+                      key={col.hex}
+                      type="button"
+                      onClick={() => setTextColor(col.hex)}
+                      className={`px-3 py-1.5 text-xs rounded-full border transition font-medium flex items-center gap-1.5 ${
+                        textColor === col.hex ? "border-ink bg-ink text-white" : "border-black/10 bg-white text-ink/80 hover:border-neutral-300"
+                      }`}
+                    >
+                      <span className="w-3 h-3 rounded-full border border-black/10" style={{ backgroundColor: col.hex }} />
+                      {col.name}
+                    </button>
+                  ))}
+                  
+                  {/* Native Custom Picker Color Block */}
+                  <div className="flex items-center gap-1.5 ml-auto border border-black/10 rounded-full px-2 py-1 bg-white">
+                    <span className="text-[10px] text-ink/50 font-medium">Custom:</span>
+                    <input 
+                      type="color" 
+                      value={textColor} 
+                      onChange={(e) => setTextColor(e.target.value)}
+                      className="w-5 h-5 rounded cursor-pointer border-none bg-transparent"
+                    />
+                  </div>
+                </div>
               </div>
 
               {rawUpload && (
@@ -263,17 +304,12 @@ const customFlagRef = useRef<HTMLInputElement>(null);
                     className="w-full border border-black/10 rounded-lg px-4 py-3 mb-4 text-sm focus-ring" 
                   />
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {/* // Inside your app/cards/[slug]/customize/page.tsx file (around Step 2 logic): */}
                     {CLUBS.map((c) => (
                       <button
                         key={c}
                         type="button"
                         onClick={() => {
-                          setClub(c); // Sets the text name (e.g., "Barcelona")
-                          
-                          /* This dynamically matches the file name based on your naming format.
-                            Example: "Manchester United" becomes "/images/presets/manchester-united.png"
-                          */
+                          setClub(c);
                           const logoPath = `/images/presets/${c.toLowerCase().replace(/\s+/g, "-")}.png`;
                           setClubBadge(logoPath);
                         }}
@@ -350,123 +386,121 @@ const customFlagRef = useRef<HTMLInputElement>(null);
         )}
 
         {step === 3 && (
-  <StepWrap title="Country flag customisation" subtitle="Choose a country flag or upload a custom one.">
-    <Card>
-      <SectionLabel letter="D" title="Choose a country flag" />
-      
-      {/* Dynamic Toggle Options */}
-      <div className="grid grid-cols-2 gap-2 mb-6 bg-cream/50 p-1 rounded-xl border border-black/5">
-        <button
-          type="button"
-          onClick={() => setIsCustomCountry(false)}
-          className={`py-2 text-xs font-display rounded-lg transition ${
-            !isCustomCountry ? "bg-white text-ink shadow-sm" : "text-ink/60 hover:text-ink"
-          }`}
-        >
-          Search Preset Flags
-        </button>
-        <button
-          type="button"
-          onClick={() => setIsCustomCountry(true)}
-          className={`py-2 text-xs font-display rounded-lg transition ${
-            isCustomCountry ? "bg-white text-ink shadow-sm" : "text-ink/60 hover:text-ink"
-          }`}
-        >
-          + Custom Flag
-        </button>
-      </div>
+          <StepWrap title="Country flag customisation" subtitle="Choose a country flag or upload a custom one.">
+            <Card>
+              <SectionLabel letter="D" title="Choose a country flag" />
+              
+              <div className="grid grid-cols-2 gap-2 mb-6 bg-cream/50 p-1 rounded-xl border border-black/5">
+                <button
+                  type="button"
+                  onClick={() => setIsCustomCountry(false)}
+                  className={`py-2 text-xs font-display rounded-lg transition ${
+                    !isCustomCountry ? "bg-white text-ink shadow-sm" : "text-ink/60 hover:text-ink"
+                  }`}
+                >
+                  Search Preset Flags
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsCustomCountry(true)}
+                  className={`py-2 text-xs font-display rounded-lg transition ${
+                    isCustomCountry ? "bg-white text-ink shadow-sm" : "text-ink/60 hover:text-ink"
+                  }`}
+                >
+                  + Custom Flag
+                </button>
+              </div>
 
-      {!isCustomCountry ? (
-        /* STANDARD COUNTRY SEARCH LOGIC PANEL */
-        <div className="animate-fadeIn">
-          <input 
-            placeholder="Search country name" 
-            className="w-full border border-black/10 rounded-lg px-4 py-3 mb-4 text-sm focus-ring" 
-          />
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {COUNTRIES.map((c) => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => {
-                  setCountry(c);
-                  // Auto-calculates your local public directory path file string asset dynamically
-                  setCountryFlag(`/images/flags/${c.toLowerCase().replace(/\s+/g, "-")}.png`);
-                }}
-                className={`border rounded-full py-2 px-3 text-sm flex items-center gap-2 ${
-                  country === c ? "border-ink bg-ink text-chalk" : "border-black/10 text-ink/70"
-                }`}
-              >
-                {country === c && "✓"} {c}
-              </button>
-            ))}
-          </div>
-        </div>
-      ) : (
-        /* CUSTOM FLAG FILE UPLOAD PANEL */
-        <div className="space-y-4 animate-fadeIn">
-          {/* Custom Country Name Text Field Input */}
-          <div>
-            <label className="block text-xs text-ink/60 mb-1 font-medium">Custom Country Name</label>
-            <input
-              type="text"
-              value={customCountryName}
-              onChange={(e) => {
-                setCustomCountryName(e.target.value);
-                setCountry(e.target.value); // Syncs core string state
-              }}
-              placeholder="e.g. Sri Lanka"
-              className="w-full border border-black/10 rounded-lg px-4 py-2.5 text-sm text-ink focus-ring font-medium"
-            />
-          </div>
-
-          {/* Custom Country Flag Image File Upload Area */}
-          <div>
-            <label className="block text-xs text-ink/60 mb-1.5 font-medium">Upload Flag Photo</label>
-            <div className="flex items-center gap-4">
-              {countryFlag ? (
-                <img 
-                  src={countryFlag} 
-                  alt="flag thumbnail preview" 
-                  className="w-12 h-8 rounded object-cover border border-black/10 shadow-sm" 
-                />
+              {!isCustomCountry ? (
+                <div className="animate-fadeIn">
+                  <input 
+                    placeholder="Search country name" 
+                    value={searchQuery || ""}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full border border-black/10 rounded-lg px-4 py-3 mb-4 text-sm focus-ring" 
+                  />
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[250px] overflow-y-auto pr-1">
+                    {COUNTRIES.filter(c => c.toLowerCase().includes((searchQuery || "").toLowerCase())).map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => {
+                          setCountry(c);
+                          const filename = c.toLowerCase().trim().replace(/\s+/g, "-");
+                          const newFlagPath = `/images/flags/${filename}.png`;
+                          setCountryFlag(newFlagPath);
+                        }}
+                        className={`border rounded-full py-2 px-3 text-sm flex items-center gap-2 transition ${
+                          country === c ? "border-ink bg-ink text-chalk" : "border-black/10 text-ink/70 hover:border-neutral-300"
+                        }`}
+                      >
+                        {country === c && "✓"} {c}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               ) : (
-                <div className="w-12 h-8 bg-cream border border-dashed border-black/20 flex items-center justify-center text-ink/30 text-[9px] font-bold">
-                  FLAG
+                <div className="space-y-4 animate-fadeIn">
+                  <div>
+                    <label className="block text-xs text-ink/60 mb-1 font-medium">Custom Country Name</label>
+                    <input
+                      type="text"
+                      value={customCountryName}
+                      onChange={(e) => {
+                        setCustomCountryName(e.target.value);
+                        setCountry(e.target.value);
+                      }}
+                      placeholder="e.g. Sri Lanka"
+                      className="w-full border border-black/10 rounded-lg px-4 py-2.5 text-sm text-ink focus-ring font-medium"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-ink/60 mb-1.5 font-medium">Upload Flag Photo</label>
+                    <div className="flex items-center gap-4">
+                      {countryFlag ? (
+                        <img 
+                          src={countryFlag} 
+                          alt="flag thumbnail preview" 
+                          className="w-12 h-8 rounded object-cover border border-black/10 shadow-sm" 
+                        />
+                      ) : (
+                        <div className="w-12 h-8 bg-cream border border-dashed border-black/20 flex items-center justify-center text-ink/30 text-[9px] font-bold">
+                          FLAG
+                        </div>
+                      )}
+                      
+                      <button
+                        type="button"
+                        onClick={() => customFlagRef.current?.click()}
+                        className="flex-1 text-left border border-dashed border-black/20 rounded-lg px-4 py-3 text-xs text-ink/60 bg-white hover:border-ink/40 transition font-medium"
+                      >
+                        {countryFlag ? "Change flag image" : "Click to select logo file (PNG/JPG)"}
+                      </button>
+                      
+                      <input
+                        ref={customFlagRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                              setCountryFlag(reader.result as string);
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
                 </div>
               )}
-              
-              <button
-                type="button"
-                onClick={() => customFlagRef.current?.click()}
-                className="flex-1 text-left border border-dashed border-black/20 rounded-lg px-4 py-3 text-xs text-ink/60 bg-white hover:border-ink/40 transition font-medium"
-              >
-                {countryFlag ? "Change flag image" : "Click to select logo file (PNG/JPG)"}
-              </button>
-              
-              <input
-                ref={customFlagRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                      setCountryFlag(reader.result as string); // Feeds base64 file string straight to SVG <image> card layer
-                    };
-                    reader.readAsDataURL(file);
-                  }
-                }}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-    </Card>
-  </StepWrap>
-)}
+            </Card>
+          </StepWrap>
+        )}
 
         {step === 4 && (
           <StepWrap title="Attributes customisation" subtitle="Customise attributes and ratings or randomise them all.">
@@ -497,7 +531,7 @@ const customFlagRef = useRef<HTMLInputElement>(null);
             </Card>
             <Card>
               <SectionLabel letter="F" title="Overall rating" />
-              <div className="flex items-center gap-4 mb-4">
+              <div className="flex items-center gap-4">
                 <input
                   type="number"
                   value={overall}
@@ -509,47 +543,6 @@ const customFlagRef = useRef<HTMLInputElement>(null);
                   <button key={v} onClick={() => setOverall(v)} className="w-9 h-9 rounded-full bg-cream border border-black/10 text-sm">
                     {v}
                   </button>
-                ))}
-              </div>
-              <label className="flex gap-3 text-xs text-ink/60 leading-relaxed cursor-pointer">
-                <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} className="mt-0.5 accent-ink" />
-                I have reviewed my card customisation and can confirm all information is correct. I acknowledge that upon purchase changes
-                are limited and no refunds can be issued.
-              </label>
-            </Card>
-          </StepWrap>
-        )}
-
-        {step === 5 && (
-          <StepWrap title="Recommended for you" subtitle="Add these to complete the ultimate football gift">
-            <Card>
-              <div className="divide-y divide-black/5">
-                {ADDONS.map((a) => (
-                  <div key={a.id} className="py-4 flex items-start justify-between gap-4">
-                    <div className={a.outOfStock ? "opacity-40" : ""}>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-display text-sm text-ink">{a.name}</span>
-                        {a.badge && (
-                          <span className="text-[10px] bg-emerald/10 text-emerald px-2 py-0.5 rounded-full">{a.badge}</span>
-                        )}
-                        {a.outOfStock && <span className="text-[10px] bg-black/5 text-ink/50 px-2 py-0.5 rounded-full">Out Of Stock</span>}
-                      </div>
-                      <p className="text-xs text-ink/60 mb-1 max-w-sm">{a.desc}</p>
-                      <p className="text-sm">
-                        <span className="text-emerald font-display">{formatRs(a.price)}</span>{" "}
-                        {a.compareAt && <span className="line-through text-ink/30 text-xs">{formatRs(a.compareAt)}</span>}
-                      </p>
-                    </div>
-                    <button
-                      disabled={a.outOfStock}
-                      onClick={() => toggleAddon(a.id)}
-                      className={`w-6 h-6 rounded-md border flex items-center justify-center shrink-0 mt-1 ${
-                        selectedAddons.includes(a.id) ? "bg-ink border-ink text-chalk" : "border-black/20"
-                      } ${a.outOfStock ? "cursor-not-allowed" : ""}`}
-                    >
-                      {selectedAddons.includes(a.id) && "✓"}
-                    </button>
-                  </div>
                 ))}
               </div>
             </Card>
@@ -575,7 +568,7 @@ const customFlagRef = useRef<HTMLInputElement>(null);
             disabled={!canNext()}
             className="bg-emerald hover:bg-emerald/90 disabled:opacity-40 transition text-chalk rounded-full px-5 py-3 text-sm font-display shrink-0"
           >
-            {formatRs(basePrice + addonsPrice)} | {step === 5 ? "Add to cart" : "Next"} →
+            {formatRs(basePrice + addonsPrice)} | {step === 4 ? "Add to cart" : "Next"} →
           </button>
         </div>
       </div>
@@ -587,7 +580,6 @@ const customFlagRef = useRef<HTMLInputElement>(null);
         </p>
         <span className="text-[11px] bg-cream text-ink/60 px-3 py-1 rounded-full mb-6">Preview Only</span>
         
-        {/* ✨ FIX: clubInitial={clubInitial} swapped out for clubBadge={clubBadge} below ✨ */}
         <FutCard
           name={name || "Player"}
           position={position}
@@ -598,6 +590,8 @@ const customFlagRef = useRef<HTMLInputElement>(null);
           textShiftY={CARD_LAYOUT_SHIFTS} 
           photo={photo}
           clubBadge={clubBadge}
+          countryFlag={countryFlag}
+          textColor={textColor} // ✨ Prop dynamically bound to live preview canvas layer here
           size={260}
         />
         

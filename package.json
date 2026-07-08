@@ -7,6 +7,9 @@
     "build": "next build",
     "start": "next start"
   },
+  "engines": {
+    "node": "20"
+  },
   "dependencies": {
     "@stripe/stripe-js": "^4.4.0",
     "next": "14.2.32",

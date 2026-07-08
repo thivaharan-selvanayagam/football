@@ -1,3 +1,3 @@
 export function formatRs(amount: number) {
-  return "Rs " + Math.round(amount).toLocaleString("en-IN");
+  return "CAD " + Math.round(amount).toLocaleString("en-CA");
 }
