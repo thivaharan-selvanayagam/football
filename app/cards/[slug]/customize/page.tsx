@@ -53,7 +53,7 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
   const [step, setStep] = useState(1);
   const [name, setName] = useState("");
   const [photo, setPhoto] = useState<string | null>(null);
-  const [textColor, setTextColor] = useState("#3c3f25"); // ✨ New font color state track
+  const [textColor, setTextColor] = useState("#3c3f25"); 
   const [posGroup, setPosGroup] = useState<keyof typeof POSITIONS>("Midfield");
   const [position, setPosition] = useState("CAM");
   const [club, setClub] = useState("Barcelona");
@@ -72,6 +72,9 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
   const [isCustomCountry, setIsCustomCountry] = useState(false);
   const [customCountryName, setCustomCountryName] = useState("");
   const customFlagRef = useRef<HTMLInputElement>(null);
+
+  // ✨ Added state for background removal processing
+  const [isRemovingBg, setIsRemovingBg] = useState(false);
 
   if (!product) return notFound();
 
@@ -96,17 +99,41 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
     setOverall(avg);
   };
 
-  const onPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setRawUpload(reader.result as string);
-        setIsModalOpen(true); 
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  // ✨ Updated Photo Handler with Client-side Background Removal
+  // ✨ Updated Photo Handler with Client-side Background Removal (Type-safe)
+const onPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  try {
+    setIsRemovingBg(true);
+
+    // Dynamic import cast to bypass strict Webpack/TS module export wrapper type mismatches
+    const bgRemovalModule = (await import("@imgly/background-removal")) as any;
+    const removeBackgroundFn = bgRemovalModule.removeBackground || bgRemovalModule.default;
+
+    const imageBlob = await removeBackgroundFn(file);
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setRawUpload(reader.result as string);
+      setIsModalOpen(true);
+      setIsRemovingBg(false);
+    };
+    reader.readAsDataURL(imageBlob);
+  } catch (error) {
+    console.error("Background removal failed, falling back to original image:", error);
+    setIsRemovingBg(false);
+
+    // Fallback: load original image if AI background removal fails
+    const fallbackReader = new FileReader();
+    fallbackReader.onload = () => {
+      setRawUpload(fallbackReader.result as string);
+      setIsModalOpen(true);
+    };
+    fallbackReader.readAsDataURL(file);
+  }
+};
 
   const toggleAddon = (id: string) => {
     setSelectedAddons((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
@@ -136,7 +163,6 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
         addonsPrice,
         qty: 1,
         gradient: product.gradient,
-        // ✨ Note: text color property context can be read by checkout items map array here if needed
       };
       addItem(item);
       router.push("/cart");
@@ -171,11 +197,14 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
                 {photo ? (
                   <img src={photo} alt="upload" className="w-16 h-16 rounded-lg object-cover border border-black/5" />
                 ) : (
-                  <div className="w-16 h-16 rounded-lg bg-cream border border-dashed border-black/20" />
+                  <div className="w-16 h-16 rounded-lg bg-cream border border-dashed border-black/20 flex items-center justify-center text-xs text-ink/30">
+                    {isRemovingBg ? "..." : "No image"}
+                  </div>
                 )}
                 
                 <button
                   type="button"
+                  disabled={isRemovingBg}
                   onClick={() => {
                     if (photo) {
                       setIsModalOpen(true); 
@@ -183,14 +212,23 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
                       fileRef.current?.click();
                     }
                   }}
-                  className="flex-1 border border-dashed border-black/20 rounded-lg py-4 text-sm text-ink/60 hover:border-ink/40 transition font-medium"
+                  className="flex-1 border border-dashed border-black/20 rounded-lg py-4 text-sm text-ink/60 hover:border-ink/40 transition font-medium disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  {photo ? "Edit Photo Framing" : "Click to upload a photo"}
+                  {isRemovingBg ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-ink border-t-transparent rounded-full animate-spin" />
+                      Removing background...
+                    </>
+                  ) : photo ? (
+                    "Edit Photo Framing"
+                  ) : (
+                    "Click to upload a photo"
+                  )}
                 </button>
                 <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onPhotoChange} />
               </div>
 
-              {/* ✨ NEW CUSTOM FONT COLOR SELECTOR CONTAINER */}
+              {/* FONT COLOR SELECTOR CONTAINER */}
               <div className="border-t border-black/5 pt-4">
                 <label className="block text-xs text-ink/60 mb-2 font-medium">Card Font Color</label>
                 <div className="flex flex-wrap items-center gap-2">
@@ -591,7 +629,7 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
           photo={photo}
           clubBadge={clubBadge}
           countryFlag={countryFlag}
-          textColor={textColor} // ✨ Prop dynamically bound to live preview canvas layer here
+          textColor={textColor} 
           size={260}
         />
         

@@ -10,7 +10,7 @@ interface FutCardProps {
   photo?: string | null;
   clubBadge?: string | null; 
   countryFlag?: string | null; 
-  textColor?: string; // ✨ Added dynamic text color prop
+  textColor?: string;
   size?: number;
   textShiftY?: {
     meta?: number;
@@ -29,7 +29,7 @@ export default function FutCard({
   photo,
   clubBadge,
   countryFlag, 
-  textColor = "#3c3f25", // ✨ Fallback default color if none selected
+  textColor = "#3c3f25",
   size = 260,
   textShiftY,
 }: FutCardProps) {
@@ -39,7 +39,7 @@ export default function FutCard({
   const metaYShift = textShiftY?.meta !== undefined ? textShiftY.meta : 0;
   const nameYShift = textShiftY?.name !== undefined ? textShiftY.name : 0;
   const statsYShift = textShiftY?.stats !== undefined ? textShiftY.stats : 0;
-  
+
   return (
     <svg width={size} height={h} viewBox="0 0 260 351" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink">
       <defs>
@@ -47,13 +47,9 @@ export default function FutCard({
           <stop offset="0%" stopColor={gradient[0]} />
           <stop offset="100%" stopColor={gradient[1]} />
         </linearGradient>
-
-        <clipPath id="shield-clip">
-          <path d="M130 4 L246 36 L246 190 C246 270 196 320 130 347 C64 320 14 270 14 190 L14 36 Z" />
-        </clipPath>
       </defs>
 
-      {/* BACKGROUND FRAME LAYER */}
+      {/* 1. CARD FRAME BACKGROUND */}
       {frameImage ? (
         <image 
           href={frameImage} 
@@ -68,20 +64,25 @@ export default function FutCard({
         <path
           d="M130 4 L246 36 L246 190 C246 270 196 320 130 347 C64 320 14 270 14 190 L14 36 Z"
           fill={`url(#${bgGradId})`}
-          clipPath="url(#shield-clip)"
         />
       )}
 
-      {/* PLAYER PORTRAIT PHOTO */}
-      <g clipPath="url(#shield-clip)">
-        {photo ? (
-          <image href={photo} xlinkHref={photo} x="20" y="35" width="220" height="220" preserveAspectRatio="xMidYMid slice" />
-        ) : (
-          <circle cx="130" cy="150" r="62" fill="rgba(255,255,255,0)" /> 
-        )}
-      </g>
+      {/* 2. PLAYER PORTRAIT PHOTO (Shrunk slightly and centered) */}
+      {photo ? (
+        <image 
+          href={photo} 
+          xlinkHref={photo} 
+          x="40" 
+          y="45" 
+          width="180" 
+          height="190" 
+          preserveAspectRatio="xMidYMid meet" 
+        />
+      ) : (
+        <circle cx="130" cy="150" r="62" fill="rgba(255,255,255,0)" /> 
+      )}
 
-      {/* 1. OVERALL RATING & POSITION */}
+      {/* 3. OVERALL RATING & POSITION */}
       <g transform={`translate(0, ${metaYShift})`}>
         <text x="54" y="80" fontFamily="Oswald, sans-serif" fontSize="36" fontWeight="700" fill={textColor} textAnchor="middle">
           {overall}
@@ -91,14 +92,14 @@ export default function FutCard({
         </text>
       </g>
 
-      {/* 2. PLAYER NAME */}
+      {/* 4. PLAYER NAME */}
       <g transform={`translate(0, ${nameYShift})`}>
         <text x="130" y="242" fontFamily="Oswald, sans-serif" fontSize="24" fontWeight="700" fill={textColor} textAnchor="middle">
           {name ? name.charAt(0).toUpperCase() + name.slice(1) : "Player"}
         </text>
       </g>
 
-      {/* 3. STATS ATTRIBUTES MATRIX */}
+      {/* 5. STATS ATTRIBUTES MATRIX */}
       <g transform={`translate(0, ${statsYShift})`}>
         {Object.entries(attrs).map(([k, v], i) => {
           const x = 48 + i * 33; 
@@ -116,7 +117,7 @@ export default function FutCard({
         })}
       </g>
 
-      {/* 4. BOTTOM CENTER BADGES */}
+      {/* 6. BOTTOM CENTER BADGES */}
       <g transform="translate(0, -1)"> 
         {countryFlag && (
           <image
