@@ -22,7 +22,6 @@ const CARD_LAYOUT_SHIFTS = {
   stats: 0,
 };
 
-// Preset font colors configuration array
 const PRESET_COLORS = [
   { name: "Original", hex: "#3c3f25" },
   { name: "Gold", hex: "#caa84a" },
@@ -73,7 +72,6 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
   const [customCountryName, setCustomCountryName] = useState("");
   const customFlagRef = useRef<HTMLInputElement>(null);
 
-  // ✨ Added state for background removal processing
   const [isRemovingBg, setIsRemovingBg] = useState(false);
 
   if (!product) return notFound();
@@ -99,44 +97,34 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
     setOverall(avg);
   };
 
-  // ✨ Updated Photo Handler with Client-side Background Removal
-  // ✨ Updated Photo Handler with Client-side Background Removal (Type-safe)
-const onPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-  const file = e.target.files?.[0];
-  if (!file) return;
+  const onPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  try {
-    setIsRemovingBg(true);
+    try {
+      setIsRemovingBg(true);
+      const bgRemovalModule = (await import("@imgly/background-removal")) as any;
+      const removeBackgroundFn = bgRemovalModule.removeBackground || bgRemovalModule.default;
+      const imageBlob = await removeBackgroundFn(file);
 
-    // Dynamic import cast to bypass strict Webpack/TS module export wrapper type mismatches
-    const bgRemovalModule = (await import("@imgly/background-removal")) as any;
-    const removeBackgroundFn = bgRemovalModule.removeBackground || bgRemovalModule.default;
-
-    const imageBlob = await removeBackgroundFn(file);
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      setRawUpload(reader.result as string);
-      setIsModalOpen(true);
+      const reader = new FileReader();
+      reader.onload = () => {
+        setRawUpload(reader.result as string);
+        setIsModalOpen(true);
+        setIsRemovingBg(false);
+      };
+      reader.readAsDataURL(imageBlob);
+    } catch (error) {
+      console.error("Background removal failed, falling back to original image:", error);
       setIsRemovingBg(false);
-    };
-    reader.readAsDataURL(imageBlob);
-  } catch (error) {
-    console.error("Background removal failed, falling back to original image:", error);
-    setIsRemovingBg(false);
 
-    // Fallback: load original image if AI background removal fails
-    const fallbackReader = new FileReader();
-    fallbackReader.onload = () => {
-      setRawUpload(fallbackReader.result as string);
-      setIsModalOpen(true);
-    };
-    fallbackReader.readAsDataURL(file);
-  }
-};
-
-  const toggleAddon = (id: string) => {
-    setSelectedAddons((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+      const fallbackReader = new FileReader();
+      fallbackReader.onload = () => {
+        setRawUpload(fallbackReader.result as string);
+        setIsModalOpen(true);
+      };
+      fallbackReader.readAsDataURL(file);
+    }
   };
 
   const canNext = () => {
@@ -176,10 +164,29 @@ const onPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
-    <div className="min-h-screen bg-cream grid md:grid-cols-2">
-      {/* Left: form */}
-      <div className="px-6 sm:px-12 py-12 max-w-xl mx-auto md:mx-0 md:ml-auto w-full">
-        <p className="font-display text-7xl text-ink/10 mb-2 leading-none">{step}</p>
+    <div className="min-h-screen bg-cream flex flex-col md:grid md:grid-cols-2">
+      
+      {/* 📱 MOBILE CARD PREVIEW CONTAINER (Shown at the top on mobile) */}
+      <div className="flex md:hidden flex-col items-center justify-center bg-white border-b border-black/5 py-6 px-4 sticky top-16 z-30 shadow-sm">
+        <FutCard
+          name={name || "Player"}
+          position={position}
+          overall={overall}
+          attrs={attrs}
+          gradient={product.gradient}
+          frameImage={product.frameImage} 
+          textShiftY={CARD_LAYOUT_SHIFTS} 
+          photo={photo}
+          clubBadge={clubBadge}
+          countryFlag={countryFlag}
+          textColor={textColor} 
+          size={190} // Slightly compact preview size for small mobile viewports
+        />
+      </div>
+
+      {/* Left Column: Form Controls */}
+      <div className="px-6 sm:px-12 py-8 md:py-12 max-w-xl mx-auto md:mx-0 md:ml-auto w-full">
+        <p className="font-display text-5xl sm:text-7xl text-ink/10 mb-2 leading-none">{step}</p>
 
         {step === 1 && (
           <StepWrap title="Basic information" subtitle="Enter name, upload an image and choose a position.">
@@ -228,7 +235,7 @@ const onPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
                 <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onPhotoChange} />
               </div>
 
-              {/* FONT COLOR SELECTOR CONTAINER */}
+              {/* FONT COLOR SELECTOR */}
               <div className="border-t border-black/5 pt-4">
                 <label className="block text-xs text-ink/60 mb-2 font-medium">Card Font Color</label>
                 <div className="flex flex-wrap items-center gap-2">
@@ -246,7 +253,6 @@ const onPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
                     </button>
                   ))}
                   
-                  {/* Native Custom Picker Color Block */}
                   <div className="flex items-center gap-1.5 ml-auto border border-black/10 rounded-full px-2 py-1 bg-white">
                     <span className="text-[10px] text-ink/50 font-medium">Custom:</span>
                     <input 
@@ -279,13 +285,13 @@ const onPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
 
             <Card>
               <SectionLabel letter="B" title="Choose a position" />
-              <div className="flex gap-6 text-sm font-display mb-4 border-b border-black/5">
+              <div className="flex gap-6 text-sm font-display mb-4 border-b border-black/5 overflow-x-auto pb-1">
                 {(Object.keys(POSITIONS) as (keyof typeof POSITIONS)[]).map((g) => (
                   <button
                     key={g}
                     type="button"
                     onClick={() => { setPosGroup(g); setPosition(POSITIONS[g][0]); }}
-                    className={`pb-3 -mb-px border-b-2 transition ${posGroup === g ? "border-ink text-ink" : "border-transparent text-ink/40"}`}
+                    className={`pb-3 -mb-px border-b-2 transition shrink-0 ${posGroup === g ? "border-ink text-ink" : "border-transparent text-ink/40"}`}
                   >
                     {g}
                   </button>
@@ -341,7 +347,7 @@ const onPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
                     placeholder="Search clubs name" 
                     className="w-full border border-black/10 rounded-lg px-4 py-3 mb-4 text-sm focus-ring" 
                   />
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[250px] overflow-y-auto">
                     {CLUBS.map((c) => (
                       <button
                         key={c}
@@ -587,13 +593,13 @@ const onPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
           </StepWrap>
         )}
 
-        {/* Nav */}
-        <div className="flex items-center gap-4 mt-8 sticky bottom-4">
+        {/* Navigation Controls */}
+        <div className="flex items-center gap-4 mt-8 sticky bottom-4 bg-cream/80 backdrop-blur-md py-2 z-20">
           <button
             onClick={() => (step === 1 ? router.push(`/cards/${product.slug}`) : setStep(step - 1))}
-            className="bg-white border border-black/10 rounded-full px-5 py-3 text-sm font-display text-ink/70 shrink-0"
+            className="bg-white border border-black/10 rounded-full px-4 sm:px-5 py-3 text-xs sm:text-sm font-display text-ink/70 shrink-0"
           >
-            ← {step === 1 ? "Return to product" : "Back"}
+            ← {step === 1 ? "Return" : "Back"}
           </button>
           <div className="flex-1 h-2 bg-black/5 rounded-full relative">
             <div
@@ -604,14 +610,14 @@ const onPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
           <button
             onClick={handleNext}
             disabled={!canNext()}
-            className="bg-emerald hover:bg-emerald/90 disabled:opacity-40 transition text-chalk rounded-full px-5 py-3 text-sm font-display shrink-0"
+            className="bg-emerald hover:bg-emerald/90 disabled:opacity-40 transition text-chalk rounded-full px-4 sm:px-5 py-3 text-xs sm:text-sm font-display shrink-0"
           >
             {formatRs(basePrice + addonsPrice)} | {step === 4 ? "Add to cart" : "Next"} →
           </button>
         </div>
       </div>
 
-      {/* Right: live preview */}
+      {/* 💻 DESKTOP LIVE PREVIEW CONTAINER (Sticky on large screens) */}
       <div className="hidden md:flex flex-col items-center justify-center bg-white border-l border-black/5 py-12 px-8 relative">
         <p className="font-display text-lg text-ink mb-1 flex items-center gap-2">
           <span className="w-6 h-6 rounded-full bg-gold inline-block" /> CardsPlug
@@ -633,7 +639,6 @@ const onPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
           size={260}
         />
         
-        <button className="mt-4 text-xs border border-black/10 rounded-full px-4 py-2 text-ink/70">✎ Edit Image</button>
         <h3 className="font-display text-xl text-ink mt-6 text-center">{product.name}</h3>
         <p className="text-xs text-ink/50 mt-1">
           {style} / {size} {sizeInfo.dim}
