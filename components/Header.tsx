@@ -14,16 +14,20 @@ export default function Header() {
       <div className="bg-emerald text-chalk text-xs py-2 px-4 flex justify-center gap-8 font-body tracking-wide">
         <span>World Cup 40% off sitewide</span>
         <span className="hidden sm:inline">350,000+ Happy Customers</span>
-        <span className="hidden md:inline">The #1 Football Card Brand</span>
+        <span className="hidden md:inline">The #1 Sports Card Brand</span>
       </div>
 
       <header className="bg-chalk border-b border-black/5 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 font-display text-xl tracking-wide text-ink">
-            <span className="w-8 h-8 rounded-full bg-gold flex items-center justify-center text-chalk font-bold">C</span>
-            CardsPlug
+          {/* ✨ BRAND LOGO & NAME (LARGER LOGO) */}
+          <Link href="/" className="flex items-center gap-3 font-display text-xl sm:text-xl tracking-wide text-ink">
+            <img 
+              src="/images/logo.png" 
+              alt="SAS Sports Logo" 
+              className="h-11 w-auto max-h-12 object-contain" // ✨ Adjusted size to make logo bigger
+            />
+            <span className="font-bold">SAS Sports</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -57,7 +61,7 @@ export default function Header() {
               Shop Cards
             </Link>
 
-            {/* Mobile Hamburger Toggle Button */}
+            {/* Mobile Toggle Button */}
             <button
               type="button"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -65,12 +69,10 @@ export default function Header() {
               aria-label="Toggle navigation menu"
             >
               {isMenuOpen ? (
-                /* Close (X) Icon */
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M18 6L6 18M6 6l12 12" />
                 </svg>
               ) : (
-                /* Hamburger Menu Icon */
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M4 6h16M4 12h16M4 18h16" />
                 </svg>

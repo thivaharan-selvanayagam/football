@@ -3,8 +3,8 @@ import { useState } from "react";
 
 const FAQS = [
   {
-    q: "What is CardsPlug?",
-    a: "CardsPlug is home to the world's favourite personalised football cards. Our easy card builder lets you make a real life football card with your own name, photo, and skill ratings. Once you've personalised your card, our design experts will edit your photo and bring it to life in stunning quality. You'll get a full preview before we print and every card's quality is backed by our Gold Standard Guarantee.",
+    q: "What is SAS Sports?",
+    a: "SAS Sports is home to the world's favourite personalised football cards. Our easy card builder lets you make a real life football card with your own name, photo, and skill ratings. Once you've personalised your card, our design experts will edit your photo and bring it to life in stunning quality. You'll get a full preview before we print and every card's quality is backed by our Gold Standard Guarantee.",
   },
   {
     q: "How do I create a personalised football card?",
@@ -19,7 +19,7 @@ const FAQS = [
     a: "Yes — every order includes a full design preview before printing. Our team checks and edits your uploaded photo so the final card looks its best.",
   },
   {
-    q: "Will CardsPlug edit my photo for me?",
+    q: "Will SAS Sports edit my photo for me?",
     a: "Absolutely. Background removal and touch-ups are included with every order at no extra cost, performed by our in-house design team.",
   },
   {

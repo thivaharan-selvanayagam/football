@@ -29,12 +29,12 @@ export default function Footer() {
           </ul>
         </div>
         <div>
-          <h4 className="font-display text-chalk text-base mb-3 tracking-wide">CardsPlug</h4>
+          <h4 className="font-display text-chalk text-base mb-3 tracking-wide">SAS Sports</h4>
           <p>Personalised football cards inspired by the icons of the game. Designed, printed and shipped worldwide.</p>
         </div>
       </div>
       <div className="border-t border-chalk/10 text-center text-xs py-5">
-        © 2026 CardsPlug. All rights reserved.
+        © 2026 SAS Sports. All rights reserved.
       </div>
     </footer>
   );

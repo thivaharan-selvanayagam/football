@@ -21,7 +21,7 @@ export default function SupportPage() {
         <div className="space-y-6 text-sm">
           <div>
             <p className="font-display text-ink mb-1">Email</p>
-            <p className="text-ink/60">support@cardsplug.com</p>
+            <p className="text-ink/60">support@sassports.com</p>
           </div>
           <div>
             <p className="font-display text-ink mb-1">Hours</p>
