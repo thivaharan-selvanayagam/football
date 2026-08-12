@@ -5,7 +5,18 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    // Support both multi-item cart payloads and direct single-item order payloads
+    // 1. Verify Environment Variables are Loaded
+    const smtpUser = process.env.SMTP_USER;
+    const smtpPass = process.env.SMTP_PASS;
+
+    if (!smtpUser || !smtpPass) {
+      console.error("CRITICAL: SMTP credentials missing in environment variables!");
+      return NextResponse.json(
+        { success: false, error: "SMTP credentials not configured on server." },
+        { status: 500 }
+      );
+    }
+
     const customerDetails = body.customerDetails || {
       name: body.customerName || body.name || "Customer",
       email: body.customerEmail || body.email || "N/A",
@@ -22,8 +33,8 @@ export async function POST(req: Request) {
       port: Number(process.env.SMTP_PORT) || 465,
       secure: true,
       auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+        user: smtpUser,
+        pass: smtpPass,
       },
     });
 
@@ -37,13 +48,13 @@ export async function POST(req: Request) {
       let hasOriginal = false;
       let hasPreview = false;
 
-      // 1. Process Original Non-Background Removed Photo
+      // Original Photo Attachment
       const rawOriginal = item.rawOriginalPhoto || item.rawUpload;
       if (rawOriginal && typeof rawOriginal === "string" && rawOriginal.startsWith("data:")) {
         const matches = rawOriginal.match(/^data:(.+);base64,(.+)$/);
         if (matches) {
           attachments.push({
-            filename: `original-photo-${index + 1}.png`,
+            filename: `original-photo-${index + 1}.jpeg`,
             content: Buffer.from(matches[2], "base64"),
             contentType: matches[1],
             cid: origCid,
@@ -52,7 +63,7 @@ export async function POST(req: Request) {
         }
       }
 
-      // 2. Process Full Rendered Card Preview (with fallback to item.photo)
+      // Card Preview Attachment
       const previewImg = item.fullCardPreview || item.photo;
       if (previewImg && typeof previewImg === "string" && previewImg.startsWith("data:")) {
         const matches = previewImg.match(/^data:(.+);base64,(.+)$/);
@@ -71,12 +82,11 @@ export async function POST(req: Request) {
 
       itemsHtml += `
         <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 20px; background: #fff;">
-          <h3 style="margin-top: 0; color: #1e293b;">Item #${index + 1}: ${item.productName || item.productSlug || "Custom Card"}</h3>
+          <h3 style="margin-top: 0; color: #1e293b;">Item #${index + 1}: ${item.productName || "Custom Card"}</h3>
           <p><strong>Player Name:</strong> ${item.name || "N/A"}</p>
           <p><strong>Position & Rating:</strong> ${item.position || "N/A"} (${item.overall || "N/A"})</p>
           <p><strong>Style / Size:</strong> ${item.style || "Standard"} / ${item.size || "Medium"}</p>
           <p><strong>Club / Country:</strong> ${item.club || "N/A"} / ${item.country || "N/A"}</p>
-          <p><strong>Font Color:</strong> <span style="display:inline-block; width:12px; height:12px; background:${item.textColor || "#3c3f25"}; border-radius:50%; margin-right:4px;"></span>${item.textColor || "#3c3f25"}</p>
           <p><strong>Stats:</strong> PAC: ${attrs.PAC ?? "N/A"} | SHO: ${attrs.SHO ?? "N/A"} | PAS: ${attrs.PAS ?? "N/A"} | DRI: ${attrs.DRI ?? "N/A"} | DEF: ${attrs.DEF ?? "N/A"} | PHY: ${attrs.PHY ?? "N/A"}</p>
           
           <table style="width: 100%; margin-top: 15px;">
@@ -109,7 +119,6 @@ export async function POST(req: Request) {
           🚀 New Custom Card Order Received!
         </h2>
 
-        <!-- CUSTOMER CHECKOUT DETAILS SECTION -->
         <div style="background: #fff; padding: 18px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
           <h3 style="margin-top: 0; color: #0f172a; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px;">📋 Customer Checkout Details</h3>
           <p style="margin: 6px 0;"><strong>Customer Name:</strong> ${customerDetails.name}</p>
@@ -123,17 +132,18 @@ export async function POST(req: Request) {
       </div>
     `;
 
-    await transporter.sendMail({
-      from: `"SAS Sports Orders" <${process.env.SMTP_USER}>`,
+    const info = await transporter.sendMail({
+      from: `"SAS Sports Orders" <${smtpUser}>`,
       to: "thivaharan@vto.group",
       subject: `New Order from ${customerDetails.name} (${cartItems.length} Item)`,
       html: htmlContent,
       attachments,
     });
 
-    return NextResponse.json({ success: true, message: "Order email sent successfully!" });
+    console.log("Email dispatched successfully. Message ID:", info.messageId);
+    return NextResponse.json({ success: true, messageId: info.messageId });
   } catch (error: any) {
-    console.error("Failed to send order email:", error);
+    console.error("API send-order error:", error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }

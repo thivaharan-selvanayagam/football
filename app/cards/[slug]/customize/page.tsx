@@ -45,7 +45,7 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
   const search = useSearchParams();
   const { addItem } = useCart();
   const fileRef = useRef<HTMLInputElement>(null);
-  const previewRef = useRef<HTMLDivElement>(null); // Ref to snapshot full FutCard SVG
+  const previewRef = useRef<HTMLDivElement>(null);
 
   const style = (search.get("style") as CardStyle) || "Standard";
   const size = (search.get("size") as CardSize) || "Medium";
@@ -53,7 +53,7 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
   const [step, setStep] = useState(1);
   const [name, setName] = useState("");
   const [photo, setPhoto] = useState<string | null>(null);
-  const [originalPhoto, setOriginalPhoto] = useState<string | null>(null); // ✨ Raw un-edited upload
+  const [originalPhoto, setOriginalPhoto] = useState<string | null>(null);
   const [textColor, setTextColor] = useState("#3c3f25"); 
   const [posGroup, setPosGroup] = useState<keyof typeof POSITIONS>("Midfield");
   const [position, setPosition] = useState("CAM");
@@ -99,19 +99,44 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
     setOverall(avg);
   };
 
-  // ✨ Save untouched original image before processing background removal
+  // Save untouched original image (compressed to canvas to prevent payload errors)
   const onPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // 1. Read and preserve UN-EDITED ORIGINAL file
-    const rawReader = new FileReader();
-    rawReader.onload = () => {
-      setOriginalPhoto(rawReader.result as string);
-    };
-    rawReader.readAsDataURL(file);
+    // Compress raw original photo to manageable size
+    const img = new Image();
+    const objectUrl = window.URL.createObjectURL(file);
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const maxDim = 800;
+      let width = img.width;
+      let height = img.height;
 
-    // 2. Perform background removal
+      if (width > height) {
+        if (width > maxDim) {
+          height = Math.round((height * maxDim) / width);
+          width = maxDim;
+        }
+      } else {
+        if (height > maxDim) {
+          width = Math.round((width * maxDim) / height);
+          height = maxDim;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.drawImage(img, 0, 0, width, height);
+        setOriginalPhoto(canvas.toDataURL("image/jpeg", 0.7));
+      }
+      window.URL.revokeObjectURL(objectUrl);
+    };
+    img.src = objectUrl;
+
+    // Background removal
     try {
       setIsRemovingBg(true);
       const bgRemovalModule = (await import("@imgly/background-removal")) as any;
@@ -145,7 +170,6 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
         const svgElement = previewRef.current?.querySelector("svg");
         if (!svgElement) return resolve(null);
 
-        // Set a 1.5-second timeout safeguard so the checkout never gets stuck
         const timeout = setTimeout(() => {
           resolve(null);
         }, 1500);
@@ -155,7 +179,7 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
         const blobURL = window.URL.createObjectURL(svgBlob);
 
         const img = new Image();
-        img.crossOrigin = "anonymous"; // Request CORS access for external badge/flag URLs
+        img.crossOrigin = "anonymous";
 
         img.onload = () => {
           clearTimeout(timeout);
@@ -174,7 +198,6 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
               resolve(null);
             }
           } catch (e) {
-            // Handles tainted canvas errors gracefully
             window.URL.revokeObjectURL(blobURL);
             resolve(null);
           }
@@ -201,7 +224,6 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
 
   const handleNext = async () => {
     if (step === 4) {
-      // Snapshot full rendered card image (looks like screenshot preview)
       const fullCardPreviewUrl = await generateFullCardSnapshot();
 
       const item: CartItem = {
@@ -222,8 +244,8 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
         qty: 1,
         gradient: product.gradient,
         textColor,
-        rawOriginalPhoto: originalPhoto, // Pass untouched raw upload
-        fullCardPreview: fullCardPreviewUrl || photo, // Pass full rendered card PNG
+        rawOriginalPhoto: originalPhoto,
+        fullCardPreview: fullCardPreviewUrl || photo,
       } as any;
 
       addItem(item);
