@@ -67,34 +67,34 @@ export default function FutCard({
         />
       )}
 
-      {/* 2. PLAYER PORTRAIT PHOTO (Shrunk slightly and centered) */}
+      {/* 2. PLAYER PORTRAIT PHOTO (Rendered underneath text overlay) */}
       {photo ? (
         <image 
           href={photo} 
           xlinkHref={photo} 
-          x="40" 
-          y="45" 
-          width="180" 
-          height="190" 
+          x="52" 
+          y="48" 
+          width="176" 
+          height="180" 
           preserveAspectRatio="xMidYMid meet" 
         />
       ) : (
         <circle cx="130" cy="150" r="62" fill="rgba(255,255,255,0)" /> 
       )}
 
-      {/* 3. OVERALL RATING & POSITION */}
+      {/* 3. OVERALL RATING & POSITION (Positioned top-left & unhidden) */}
       <g transform={`translate(0, ${metaYShift})`}>
-        <text x="54" y="80" fontFamily="Oswald, sans-serif" fontSize="36" fontWeight="700" fill={textColor} textAnchor="middle">
+        <text x="56" y="82" fontFamily="Oswald, sans-serif" fontSize="34" fontWeight="700" fill={textColor} textAnchor="middle">
           {overall}
         </text>
-        <text x="54" y="98" fontFamily="Oswald, sans-serif" fontSize="15" fontWeight="700" fill={textColor} textAnchor="middle" letterSpacing="0.5">
+        <text x="56" y="100" fontFamily="Oswald, sans-serif" fontSize="14" fontWeight="700" fill={textColor} textAnchor="middle" letterSpacing="0.5">
           {position?.toUpperCase()}
         </text>
       </g>
 
-      {/* 4. PLAYER NAME */}
+      {/* 4. PLAYER NAME (Shifted down into the lower gold banner) */}
       <g transform={`translate(0, ${nameYShift})`}>
-        <text x="130" y="242" fontFamily="Oswald, sans-serif" fontSize="24" fontWeight="700" fill={textColor} textAnchor="middle">
+        <text x="130" y="252" fontFamily="Oswald, sans-serif" fontSize="22" fontWeight="700" fill={textColor} textAnchor="middle">
           {name ? name.charAt(0).toUpperCase() + name.slice(1) : "Player"}
         </text>
       </g>

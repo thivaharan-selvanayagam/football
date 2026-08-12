@@ -73,6 +73,7 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
   const customFlagRef = useRef<HTMLInputElement>(null);
 
   const [isRemovingBg, setIsRemovingBg] = useState(false);
+  const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
 
   if (!product) return notFound();
 
@@ -132,28 +133,62 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
     return true;
   };
 
-  const handleNext = () => {
+  // ✨ Handles sending the full customization details & images via Email API
+  const handleNext = async () => {
     if (step === 4) {
-      const item: CartItem = {
-        id: `${Date.now()}`,
-        productSlug: product.slug,
-        productName: product.name,
-        name,
-        style,
-        size,
-        position,
-        club,
-        country,
-        attributes: attrs,
-        overall,
-        addons: selectedAddons,
-        unitPrice: basePrice,
-        addonsPrice,
-        qty: 1,
-        gradient: product.gradient,
-      };
-      addItem(item);
-      router.push("/cart");
+      try {
+        setIsSubmittingOrder(true);
+
+        const orderDetails = {
+          productName: product.name,
+          name,
+          position,
+          overall,
+          style,
+          size,
+          club,
+          country,
+          attributes: attrs,
+          textColor,
+          unitPrice: basePrice,
+          addonsPrice,
+          rawUpload, // 1. Original client photo
+          photo,     // 2. Sample framed preview
+        };
+
+        // Dispatch details to thivaharan@vto.group
+        await fetch("/api/send-order", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(orderDetails),
+        });
+
+        const item: CartItem = {
+          id: `${Date.now()}`,
+          productSlug: product.slug,
+          productName: product.name,
+          name,
+          style,
+          size,
+          position,
+          club,
+          country,
+          attributes: attrs,
+          overall,
+          addons: selectedAddons,
+          unitPrice: basePrice,
+          addonsPrice,
+          qty: 1,
+          gradient: product.gradient,
+        };
+
+        addItem(item);
+        router.push("/cart");
+      } catch (err) {
+        console.error("Failed to complete order submission email:", err);
+      } finally {
+        setIsSubmittingOrder(false);
+      }
     } else {
       setStep(step + 1);
     }
@@ -166,7 +201,7 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
   return (
     <div className="min-h-screen bg-cream flex flex-col md:grid md:grid-cols-2">
       
-      {/* 📱 MOBILE CARD PREVIEW CONTAINER (Shown at the top on mobile) */}
+      {/* 📱 MOBILE CARD PREVIEW CONTAINER */}
       <div className="flex md:hidden flex-col items-center justify-center bg-white border-b border-black/5 py-6 px-4 sticky top-16 z-30 shadow-sm">
         <FutCard
           name={name || "Player"}
@@ -180,7 +215,7 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
           clubBadge={clubBadge}
           countryFlag={countryFlag}
           textColor={textColor} 
-          size={190} // Slightly compact preview size for small mobile viewports
+          size={190}
         />
       </div>
 
@@ -609,18 +644,25 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
           </div>
           <button
             onClick={handleNext}
-            disabled={!canNext()}
-            className="bg-emerald hover:bg-emerald/90 disabled:opacity-40 transition text-chalk rounded-full px-4 sm:px-5 py-3 text-xs sm:text-sm font-display shrink-0"
+            disabled={!canNext() || isSubmittingOrder}
+            className="bg-emerald hover:bg-emerald/90 disabled:opacity-40 transition text-chalk rounded-full px-4 sm:px-5 py-3 text-xs sm:text-sm font-display shrink-0 flex items-center gap-2"
           >
-            {formatRs(basePrice + addonsPrice)} | {step === 4 ? "Add to cart" : "Next"} →
+            {isSubmittingOrder ? (
+              <>
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>{formatRs(basePrice + addonsPrice)} | {step === 4 ? "Add to cart" : "Next"} →</>
+            )}
           </button>
         </div>
       </div>
 
-      {/* 💻 DESKTOP LIVE PREVIEW CONTAINER (Sticky on large screens) */}
+      {/* 💻 DESKTOP LIVE PREVIEW CONTAINER */}
       <div className="hidden md:flex flex-col items-center justify-center bg-white border-l border-black/5 py-12 px-8 relative">
         <p className="font-display text-lg text-ink mb-1 flex items-center gap-2">
-          <span className="w-6 h-6 rounded-full bg-gold inline-block" /> CardsPlug
+          <span className="w-6 h-6 rounded-full bg-gold inline-block" /> SAS Sports
         </p>
         <span className="text-[11px] bg-cream text-ink/60 px-3 py-1 rounded-full mb-6">Preview Only</span>
         
@@ -643,7 +685,6 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
         <p className="text-xs text-ink/50 mt-1">
           {style} / {size} {sizeInfo.dim}
         </p>
-        <p className="text-xs text-gold mt-2">★★★★★ {product.rating} out of 5</p>
       </div>
     </div>
   );
