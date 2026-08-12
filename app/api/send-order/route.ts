@@ -17,24 +17,67 @@ export async function POST(req: Request) {
       textColor,
       unitPrice,
       addonsPrice,
-      rawUpload, // Original client uploaded photo
-      photo,     // Cropped/processed preview photo
+      rawUpload, // Original client uploaded photo (base64 or URL)
+      photo,     // Cropped card preview photo (base64 or URL)
     } = body;
 
-    // Configure Nodemailer transporter (e.g. Gmail SMTP, SendGrid, or custom SMTP)
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || "smtp.gmail.com",
       port: Number(process.env.SMTP_PORT) || 465,
       secure: true,
       auth: {
         user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS, // App-specific password
+        pass: process.env.SMTP_PASS,
       },
     });
 
     const totalAmount = unitPrice + addonsPrice;
 
-    // Build Email HTML Layout
+    // Prepare attachments array for native email display
+    const attachments: any[] = [];
+
+    // Process Original Uploaded Photo
+    if (rawUpload) {
+      if (rawUpload.startsWith("data:")) {
+        const matches = rawUpload.match(/^data:(.+);base64,(.+)$/);
+        if (matches) {
+          attachments.push({
+            filename: "original-photo.png",
+            content: Buffer.from(matches[2], "base64"),
+            contentType: matches[1],
+            cid: "originalPhotoImg", // Referenced in HTML via cid:originalPhotoImg
+          });
+        }
+      } else {
+        attachments.push({
+          filename: "original-photo.png",
+          path: rawUpload,
+          cid: "originalPhotoImg",
+        });
+      }
+    }
+
+    // Process Cropped Preview Photo
+    if (photo) {
+      if (photo.startsWith("data:")) {
+        const matches = photo.match(/^data:(.+);base64,(.+)$/);
+        if (matches) {
+          attachments.push({
+            filename: "cropped-preview.png",
+            content: Buffer.from(matches[2], "base64"),
+            contentType: matches[1],
+            cid: "croppedPreviewImg", // Referenced in HTML via cid:croppedPreviewImg
+          });
+        }
+      } else {
+        attachments.push({
+          filename: "cropped-preview.png",
+          path: photo,
+          cid: "croppedPreviewImg",
+        });
+      }
+    }
+
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #111;">
         <h2 style="background: #2a2a2a; color: #fff; padding: 15px; text-align: center; border-radius: 8px;">
@@ -59,35 +102,37 @@ export async function POST(req: Request) {
         </p>
 
         <h3>Uploaded Assets:</h3>
-        <div style="display: flex; gap: 20px; margin-top: 15px;">
-          ${
-            rawUpload
-              ? `<div>
-                  <p><strong>1. Original Uploaded Photo:</strong></p>
-                  <img src="${rawUpload}" style="max-width: 250px; border-radius: 8px; border: 1px solid #ccc;" />
-                </div>`
-              : ""
-          }
-          ${
-            photo
-              ? `<div style="margin-top: 15px;">
-                  <p><strong>2. Cropped Card Preview:</strong></p>
-                  <img src="${photo}" style="max-width: 250px; border-radius: 8px; border: 1px solid #ccc;" />
-                </div>`
-              : ""
-          }
-        </div>
+        <table style="width: 100%; margin-top: 15px;">
+          <tr>
+            ${
+              rawUpload
+                ? `<td style="vertical-align: top; padding-right: 15px; width: 50%;">
+                    <p style="margin-bottom: 8px;"><strong>1. Original Uploaded Photo:</strong></p>
+                    <img src="cid:originalPhotoImg" style="width: 100%; max-width: 250px; border-radius: 8px; border: 1px solid #ccc; display: block;" />
+                   </td>`
+                : ""
+            }
+            ${
+              photo
+                ? `<td style="vertical-align: top; width: 50%;">
+                    <p style="margin-bottom: 8px;"><strong>2. Cropped Card Preview:</strong></p>
+                    <img src="cid:croppedPreviewImg" style="width: 100%; max-width: 250px; border-radius: 8px; border: 1px solid #ccc; display: block;" />
+                   </td>`
+                : ""
+            }
+          </tr>
+        </table>
 
-        <h3 style="margin-top: 25px;">Total Price: LKR ${totalAmount}</h3>
+        <h3 style="margin-top: 25px; padding-top: 15px; border-t: 1px solid #eee;">Total Price: LKR ${totalAmount}</h3>
       </div>
     `;
 
-    // Send Mail to Destination Address
     await transporter.sendMail({
       from: `"SAS Sports Orders" <${process.env.SMTP_USER}>`,
       to: "thivaharan@vto.group",
       subject: `New Custom Card Order: ${name || "Player"} (${productName})`,
       html: htmlContent,
+      attachments, // Attachments render directly inside the email body and as email downloads
     });
 
     return NextResponse.json({ success: true, message: "Order email sent successfully!" });
