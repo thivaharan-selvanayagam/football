@@ -138,7 +138,7 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
     }
   };
 
-  // ✨ Converts live SVG Card element into a full PNG Data URL snapshot
+  // Converts live SVG Card element into a full PNG Data URL snapshot
   const generateFullCardSnapshot = (): Promise<string | null> => {
     return new Promise((resolve) => {
       try {
@@ -147,8 +147,7 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
 
         const svgData = new XMLSerializer().serializeToString(svgElement);
         const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
-        const URL = window.URL || window.webkitURL || window;
-        const blobURL = URL.createObjectURL(svgBlob);
+        const blobURL = window.URL.createObjectURL(svgBlob);
 
         const img = new Image();
         img.onload = () => {
@@ -159,13 +158,17 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
           if (ctx) {
             ctx.drawImage(img, 0, 0);
             const pngDataUrl = canvas.toDataURL("image/png");
-            URL.revokeObjectURL(blobURL);
+            window.URL.revokeObjectURL(blobURL);
             resolve(pngDataUrl);
           } else {
+            window.URL.revokeObjectURL(blobURL);
             resolve(null);
           }
         };
-        img.onerror = () => resolve(null);
+        img.onerror = () => {
+          window.URL.revokeObjectURL(blobURL);
+          resolve(null);
+        };
         img.src = blobURL;
       } catch (e) {
         console.error("Error capturing card snapshot:", e);
