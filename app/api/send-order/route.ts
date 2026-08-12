@@ -1,18 +1,19 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 
+export const maxDuration = 60;
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    // 1. Verify Environment Variables are Loaded
     const smtpUser = process.env.SMTP_USER;
     const smtpPass = process.env.SMTP_PASS;
 
     if (!smtpUser || !smtpPass) {
-      console.error("CRITICAL: SMTP credentials missing in environment variables!");
+      console.error("CRITICAL ERROR: SMTP_USER or SMTP_PASS environment variables are missing.");
       return NextResponse.json(
-        { success: false, error: "SMTP credentials not configured on server." },
+        { success: false, error: "SMTP credentials not configured on the server." },
         { status: 500 }
       );
     }
@@ -28,13 +29,17 @@ export async function POST(req: Request) {
       ? body.cartItems
       : [body];
 
+    // Transporter configured with Port 587 TLS for maximum cloud hosting compatibility
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || "smtp.gmail.com",
-      port: Number(process.env.SMTP_PORT) || 465,
-      secure: true,
+      port: Number(process.env.SMTP_PORT) || 587,
+      secure: false, // port 587 requires secure: false
       auth: {
         user: smtpUser,
         pass: smtpPass,
+      },
+      tls: {
+        rejectUnauthorized: false,
       },
     });
 
@@ -48,7 +53,7 @@ export async function POST(req: Request) {
       let hasOriginal = false;
       let hasPreview = false;
 
-      // Original Photo Attachment
+      // 1. Raw Original Photo
       const rawOriginal = item.rawOriginalPhoto || item.rawUpload;
       if (rawOriginal && typeof rawOriginal === "string" && rawOriginal.startsWith("data:")) {
         const matches = rawOriginal.match(/^data:(.+);base64,(.+)$/);
@@ -63,7 +68,7 @@ export async function POST(req: Request) {
         }
       }
 
-      // Card Preview Attachment
+      // 2. Full Rendered Card Preview (with fallbacks)
       const previewImg = item.fullCardPreview || item.photo;
       if (previewImg && typeof previewImg === "string" && previewImg.startsWith("data:")) {
         const matches = previewImg.match(/^data:(.+);base64,(.+)$/);
@@ -82,11 +87,12 @@ export async function POST(req: Request) {
 
       itemsHtml += `
         <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 20px; background: #fff;">
-          <h3 style="margin-top: 0; color: #1e293b;">Item #${index + 1}: ${item.productName || "Custom Card"}</h3>
+          <h3 style="margin-top: 0; color: #1e293b;">Item #${index + 1}: ${item.productName || item.productSlug || "Custom Card"}</h3>
           <p><strong>Player Name:</strong> ${item.name || "N/A"}</p>
           <p><strong>Position & Rating:</strong> ${item.position || "N/A"} (${item.overall || "N/A"})</p>
           <p><strong>Style / Size:</strong> ${item.style || "Standard"} / ${item.size || "Medium"}</p>
           <p><strong>Club / Country:</strong> ${item.club || "N/A"} / ${item.country || "N/A"}</p>
+          <p><strong>Font Color:</strong> <span style="display:inline-block; width:12px; height:12px; background:${item.textColor || "#3c3f25"}; border-radius:50%; margin-right:4px;"></span>${item.textColor || "#3c3f25"}</p>
           <p><strong>Stats:</strong> PAC: ${attrs.PAC ?? "N/A"} | SHO: ${attrs.SHO ?? "N/A"} | PAS: ${attrs.PAS ?? "N/A"} | DRI: ${attrs.DRI ?? "N/A"} | DEF: ${attrs.DEF ?? "N/A"} | PHY: ${attrs.PHY ?? "N/A"}</p>
           
           <table style="width: 100%; margin-top: 15px;">
@@ -140,7 +146,7 @@ export async function POST(req: Request) {
       attachments,
     });
 
-    console.log("Email dispatched successfully. Message ID:", info.messageId);
+    console.log("Email dispatched. ID:", info.messageId);
     return NextResponse.json({ success: true, messageId: info.messageId });
   } catch (error: any) {
     console.error("API send-order error:", error);

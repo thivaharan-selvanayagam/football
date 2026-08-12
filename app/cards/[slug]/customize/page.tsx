@@ -99,12 +99,12 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
     setOverall(avg);
   };
 
-  // Save untouched original image (compressed to canvas to prevent payload errors)
+  // Save untouched original image (compressed to canvas to keep request payload size under API limits)
   const onPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Compress raw original photo to manageable size
+    // Compress raw original photo before bg removal
     const img = new Image();
     const objectUrl = window.URL.createObjectURL(file);
     img.onload = () => {
@@ -136,7 +136,7 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
     };
     img.src = objectUrl;
 
-    // Background removal
+    // Perform background removal
     try {
       setIsRemovingBg(true);
       const bgRemovalModule = (await import("@imgly/background-removal")) as any;
@@ -163,7 +163,7 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
     }
   };
 
-  // Converts live SVG Card element into a full PNG Data URL snapshot
+  // Converts live SVG Card element into a full PNG Data URL snapshot matching the screen preview
   const generateFullCardSnapshot = (): Promise<string | null> => {
     return new Promise((resolve) => {
       try {
