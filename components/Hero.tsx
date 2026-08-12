@@ -5,7 +5,8 @@ import Link from "next/link";
 
 export default function Hero() {
   return (
-    <div className="relative w-full min-h-screen bg-[#060606] text-white flex flex-col overflow-hidden select-none">
+    /* ✨ -mt-28 md:-mt-32 pulls the hero section up underneath the fixed capsule header */
+    <div className="relative w-full min-h-screen -mt-28 md:-mt-32 bg-[#060606] text-white flex flex-col overflow-hidden select-none">
       
       {/* 1. FULLSCREEN BACKGROUND VIDEO ELEMENT */}
       <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
@@ -16,7 +17,6 @@ export default function Hero() {
           playsInline
           className="w-full h-full object-cover"
         >
-          {/* Replace 'your-video-file.mp4' with your actual file name inside the public directory */}
           <source src="/hero.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
@@ -25,7 +25,8 @@ export default function Hero() {
       </div>
 
       {/* 2. MAIN HERO BODY WORKSPACE */}
-      <main className="flex-1 w-full max-w-7xl mx-auto px-6 sm:px-12 flex flex-col justify-center relative z-20 pb-16 pt-8 md:pt-0">
+      {/* ✨ pt-36 md:pt-44 provides internal spacing so header doesn't cover "Every Athlete" title */}
+      <main className="flex-1 w-full max-w-7xl mx-auto px-6 sm:px-12 flex flex-col justify-center relative z-20 pb-16 pt-36 md:pt-44">
         
         {/* Dynamic Left Column Text Elements Container */}
         <div className="max-w-2xl text-left space-y-6 md:space-y-8 animate-fadeIn">
@@ -58,8 +59,6 @@ export default function Hero() {
             </Link>
           </div>
         </div>
-
-        
 
       </main>
 
