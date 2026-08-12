@@ -45,6 +45,7 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
   const search = useSearchParams();
   const { addItem } = useCart();
   const fileRef = useRef<HTMLInputElement>(null);
+  const previewRef = useRef<HTMLDivElement>(null); // Ref to snapshot full FutCard SVG
 
   const style = (search.get("style") as CardStyle) || "Standard";
   const size = (search.get("size") as CardSize) || "Medium";
@@ -52,6 +53,7 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
   const [step, setStep] = useState(1);
   const [name, setName] = useState("");
   const [photo, setPhoto] = useState<string | null>(null);
+  const [originalPhoto, setOriginalPhoto] = useState<string | null>(null); // ✨ Raw un-edited upload
   const [textColor, setTextColor] = useState("#3c3f25"); 
   const [posGroup, setPosGroup] = useState<keyof typeof POSITIONS>("Midfield");
   const [position, setPosition] = useState("CAM");
@@ -73,7 +75,6 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
   const customFlagRef = useRef<HTMLInputElement>(null);
 
   const [isRemovingBg, setIsRemovingBg] = useState(false);
-  const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
 
   if (!product) return notFound();
 
@@ -98,10 +99,19 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
     setOverall(avg);
   };
 
+  // ✨ Save untouched original image before processing background removal
   const onPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // 1. Read and preserve UN-EDITED ORIGINAL file
+    const rawReader = new FileReader();
+    rawReader.onload = () => {
+      setOriginalPhoto(rawReader.result as string);
+    };
+    rawReader.readAsDataURL(file);
+
+    // 2. Perform background removal
     try {
       setIsRemovingBg(true);
       const bgRemovalModule = (await import("@imgly/background-removal")) as any;
@@ -128,67 +138,76 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
     }
   };
 
+  // ✨ Converts live SVG Card element into a full PNG Data URL snapshot
+  const generateFullCardSnapshot = (): Promise<string | null> => {
+    return new Promise((resolve) => {
+      try {
+        const svgElement = previewRef.current?.querySelector("svg");
+        if (!svgElement) return resolve(null);
+
+        const svgData = new XMLSerializer().serializeToString(svgElement);
+        const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+        const URL = window.URL || window.webkitURL || window;
+        const blobURL = URL.createObjectURL(svgBlob);
+
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = 260;
+          canvas.height = 351;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(img, 0, 0);
+            const pngDataUrl = canvas.toDataURL("image/png");
+            URL.revokeObjectURL(blobURL);
+            resolve(pngDataUrl);
+          } else {
+            resolve(null);
+          }
+        };
+        img.onerror = () => resolve(null);
+        img.src = blobURL;
+      } catch (e) {
+        console.error("Error capturing card snapshot:", e);
+        resolve(null);
+      }
+    });
+  };
+
   const canNext = () => {
     if (step === 1) return name.trim().length > 0;
     return true;
   };
 
-  // ✨ Handles sending the full customization details & images via Email API
   const handleNext = async () => {
     if (step === 4) {
-      try {
-        setIsSubmittingOrder(true);
+      // Snapshot full rendered card image (looks like screenshot preview)
+      const fullCardPreviewUrl = await generateFullCardSnapshot();
 
-        const orderDetails = {
-          productName: product.name,
-          name,
-          position,
-          overall,
-          style,
-          size,
-          club,
-          country,
-          attributes: attrs,
-          textColor,
-          unitPrice: basePrice,
-          addonsPrice,
-          rawUpload, // 1. Original client photo
-          photo,     // 2. Sample framed preview
-        };
+      const item: CartItem = {
+        id: `${Date.now()}`,
+        productSlug: product.slug,
+        productName: product.name,
+        name,
+        style,
+        size,
+        position,
+        club,
+        country,
+        attributes: attrs,
+        overall,
+        addons: selectedAddons,
+        unitPrice: basePrice,
+        addonsPrice,
+        qty: 1,
+        gradient: product.gradient,
+        textColor,
+        rawOriginalPhoto: originalPhoto, // Pass untouched raw upload
+        fullCardPreview: fullCardPreviewUrl || photo, // Pass full rendered card PNG
+      } as any;
 
-        // Dispatch details to thivaharan@vto.group
-        await fetch("/api/send-order", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(orderDetails),
-        });
-
-        const item: CartItem = {
-          id: `${Date.now()}`,
-          productSlug: product.slug,
-          productName: product.name,
-          name,
-          style,
-          size,
-          position,
-          club,
-          country,
-          attributes: attrs,
-          overall,
-          addons: selectedAddons,
-          unitPrice: basePrice,
-          addonsPrice,
-          qty: 1,
-          gradient: product.gradient,
-        };
-
-        addItem(item);
-        router.push("/cart");
-      } catch (err) {
-        console.error("Failed to complete order submission email:", err);
-      } finally {
-        setIsSubmittingOrder(false);
-      }
+      addItem(item);
+      router.push("/cart");
     } else {
       setStep(step + 1);
     }
@@ -644,23 +663,16 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
           </div>
           <button
             onClick={handleNext}
-            disabled={!canNext() || isSubmittingOrder}
-            className="bg-emerald hover:bg-emerald/90 disabled:opacity-40 transition text-chalk rounded-full px-4 sm:px-5 py-3 text-xs sm:text-sm font-display shrink-0 flex items-center gap-2"
+            disabled={!canNext()}
+            className="bg-emerald hover:bg-emerald/90 disabled:opacity-40 transition text-chalk rounded-full px-4 sm:px-5 py-3 text-xs sm:text-sm font-display shrink-0"
           >
-            {isSubmittingOrder ? (
-              <>
-                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Processing...
-              </>
-            ) : (
-              <>{formatRs(basePrice + addonsPrice)} | {step === 4 ? "Add to cart" : "Next"} →</>
-            )}
+            {formatRs(basePrice + addonsPrice)} | {step === 4 ? "Add to cart" : "Next"} →
           </button>
         </div>
       </div>
 
       {/* 💻 DESKTOP LIVE PREVIEW CONTAINER */}
-      <div className="hidden md:flex flex-col items-center justify-center bg-white border-l border-black/5 py-12 px-8 relative">
+      <div ref={previewRef} className="hidden md:flex flex-col items-center justify-center bg-white border-l border-black/5 py-12 px-8 relative">
         <p className="font-display text-lg text-ink mb-1 flex items-center gap-2">
           <span className="w-6 h-6 rounded-full bg-gold inline-block" /> SAS Sports
         </p>

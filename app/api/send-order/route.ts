@@ -5,20 +5,8 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const {
-      productName,
-      name,
-      position,
-      overall,
-      style,
-      size,
-      club,
-      country,
-      attributes,
-      textColor,
-      unitPrice,
-      addonsPrice,
-      rawUpload, // Original client uploaded photo (base64 or URL)
-      photo,     // Cropped card preview photo (base64 or URL)
+      customerDetails, // { name, email, address, phone }
+      cartItems,       // List of custom cards in order
     } = body;
 
     const transporter = nodemailer.createTransport({
@@ -31,108 +19,94 @@ export async function POST(req: Request) {
       },
     });
 
-    const totalAmount = unitPrice + addonsPrice;
-
-    // Prepare attachments array for native email display
     const attachments: any[] = [];
+    let itemsHtml = "";
 
-    // Process Original Uploaded Photo
-    if (rawUpload) {
-      if (rawUpload.startsWith("data:")) {
-        const matches = rawUpload.match(/^data:(.+);base64,(.+)$/);
-        if (matches) {
-          attachments.push({
-            filename: "original-photo.png",
-            content: Buffer.from(matches[2], "base64"),
-            contentType: matches[1],
-            cid: "originalPhotoImg", // Referenced in HTML via cid:originalPhotoImg
-          });
-        }
-      } else {
-        attachments.push({
-          filename: "original-photo.png",
-          path: rawUpload,
-          cid: "originalPhotoImg",
-        });
-      }
-    }
+    cartItems.forEach((item: any, index: number) => {
+      const origCid = `origPhoto_${index}`;
+      const cardCid = `cardPreview_${index}`;
 
-    // Process Cropped Preview Photo
-    if (photo) {
-      if (photo.startsWith("data:")) {
-        const matches = photo.match(/^data:(.+);base64,(.+)$/);
-        if (matches) {
-          attachments.push({
-            filename: "cropped-preview.png",
-            content: Buffer.from(matches[2], "base64"),
-            contentType: matches[1],
-            cid: "croppedPreviewImg", // Referenced in HTML via cid:croppedPreviewImg
-          });
+      // 1. Original Non-Background Removed Photo
+      if (item.rawOriginalPhoto) {
+        if (item.rawOriginalPhoto.startsWith("data:")) {
+          const matches = item.rawOriginalPhoto.match(/^data:(.+);base64,(.+)$/);
+          if (matches) {
+            attachments.push({
+              filename: `original-photo-${index + 1}.png`,
+              content: Buffer.from(matches[2], "base64"),
+              contentType: matches[1],
+              cid: origCid,
+            });
+          }
         }
-      } else {
-        attachments.push({
-          filename: "cropped-preview.png",
-          path: photo,
-          cid: "croppedPreviewImg",
-        });
       }
-    }
+
+      // 2. Full Rendered Card Preview (Matching Screenshot)
+      if (item.fullCardPreview) {
+        if (item.fullCardPreview.startsWith("data:")) {
+          const matches = item.fullCardPreview.match(/^data:(.+);base64,(.+)$/);
+          if (matches) {
+            attachments.push({
+              filename: `full-card-preview-${index + 1}.png`,
+              content: Buffer.from(matches[2], "base64"),
+              contentType: matches[1],
+              cid: cardCid,
+            });
+          }
+        }
+      }
+
+      itemsHtml += `
+        <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 20px; background: #fff;">
+          <h3 style="margin-top: 0; color: #1e293b;">Item #${index + 1}: ${item.productName}</h3>
+          <p><strong>Player Name:</strong> ${item.name}</p>
+          <p><strong>Position & Rating:</strong> ${item.position} (${item.overall})</p>
+          <p><strong>Style / Size:</strong> ${item.style} / ${item.size}</p>
+          <p><strong>Club / Country:</strong> ${item.club} / ${item.country}</p>
+          <p><strong>Stats:</strong> PAC: ${item.attributes?.PAC} | SHO: ${item.attributes?.SHO} | PAS: ${item.attributes?.PAS} | DRI: ${item.attributes?.DRI} | DEF: ${item.attributes?.DEF} | PHY: ${item.attributes?.PHY}</p>
+          
+          <table style="width: 100%; margin-top: 15px;">
+            <tr>
+              <td style="vertical-align: top; padding-right: 10px; width: 50%;">
+                <p style="margin-bottom: 6px;"><strong>1. Original Uploaded Photo:</strong></p>
+                <img src="cid:${origCid}" style="width: 100%; max-width: 220px; border-radius: 8px; border: 1px solid #ccc; display: block;" />
+              </td>
+              <td style="vertical-align: top; width: 50%;">
+                <p style="margin-bottom: 6px;"><strong>2. Full Card Preview:</strong></p>
+                <img src="cid:${cardCid}" style="width: 100%; max-width: 220px; border-radius: 8px; border: 1px solid #ccc; display: block;" />
+              </td>
+            </tr>
+          </table>
+        </div>
+      `;
+    });
 
     const htmlContent = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #111;">
-        <h2 style="background: #2a2a2a; color: #fff; padding: 15px; text-align: center; border-radius: 8px;">
+      <div style="font-family: Arial, sans-serif; max-width: 650px; margin: 0 auto; color: #111; background: #f8fafc; padding: 20px; border-radius: 12px;">
+        <h2 style="background: #2a2a2a; color: #fff; padding: 16px; text-align: center; border-radius: 8px; margin-top: 0;">
           🚀 New Custom Card Order Received!
         </h2>
 
-        <h3>Card Customisation Details:</h3>
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-          <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Product:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${productName}</td></tr>
-          <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Player Name:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${name}</td></tr>
-          <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Position:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${position}</td></tr>
-          <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Overall Rating:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${overall}</td></tr>
-          <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Font Color:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;"><span style="display:inline-block; width:12px; height:12px; background:${textColor}; border-radius:50%; margin-right:5px;"></span>${textColor}</td></tr>
-          <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Style & Size:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${style} / ${size}</td></tr>
-          <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Club:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${club}</td></tr>
-          <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Country:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${country}</td></tr>
-        </table>
+        <!-- CUSTOMER CHECKOUT DETAILS SECTION -->
+        <div style="background: #fff; padding: 18px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
+          <h3 style="margin-top: 0; color: #0f172a; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px;">📋 Customer Checkout Details</h3>
+          <p style="margin: 6px 0;"><strong>Customer Name:</strong> ${customerDetails?.name || "N/A"}</p>
+          <p style="margin: 6px 0;"><strong>Email Address:</strong> ${customerDetails?.email || "N/A"}</p>
+          <p style="margin: 6px 0;"><strong>Phone Number:</strong> ${customerDetails?.phone || "N/A"}</p>
+          <p style="margin: 6px 0;"><strong>Shipping Address:</strong> ${customerDetails?.address || "N/A"}</p>
+        </div>
 
-        <h3>Player Attributes:</h3>
-        <p style="background: #f9f9f9; padding: 12px; border-radius: 6px; font-family: monospace;">
-          PAC: ${attributes.PAC} | SHO: ${attributes.SHO} | PAS: ${attributes.PAS} | DRI: ${attributes.DRI} | DEF: ${attributes.DEF} | PHY: ${attributes.PHY}
-        </p>
-
-        <h3>Uploaded Assets:</h3>
-        <table style="width: 100%; margin-top: 15px;">
-          <tr>
-            ${
-              rawUpload
-                ? `<td style="vertical-align: top; padding-right: 15px; width: 50%;">
-                    <p style="margin-bottom: 8px;"><strong>1. Original Uploaded Photo:</strong></p>
-                    <img src="cid:originalPhotoImg" style="width: 100%; max-width: 250px; border-radius: 8px; border: 1px solid #ccc; display: block;" />
-                   </td>`
-                : ""
-            }
-            ${
-              photo
-                ? `<td style="vertical-align: top; width: 50%;">
-                    <p style="margin-bottom: 8px;"><strong>2. Cropped Card Preview:</strong></p>
-                    <img src="cid:croppedPreviewImg" style="width: 100%; max-width: 250px; border-radius: 8px; border: 1px solid #ccc; display: block;" />
-                   </td>`
-                : ""
-            }
-          </tr>
-        </table>
-
-        <h3 style="margin-top: 25px; padding-top: 15px; border-t: 1px solid #eee;">Total Price: LKR ${totalAmount}</h3>
+        <h3 style="color: #0f172a;">🎴 Order Items</h3>
+        ${itemsHtml}
       </div>
     `;
 
     await transporter.sendMail({
       from: `"SAS Sports Orders" <${process.env.SMTP_USER}>`,
       to: "thivaharan@vto.group",
-      subject: `New Custom Card Order: ${name || "Player"} (${productName})`,
+      subject: `New Order from ${customerDetails?.name || "Customer"} (${cartItems?.length || 1} Item)`,
       html: htmlContent,
-      attachments, // Attachments render directly inside the email body and as email downloads
+      attachments,
     });
 
     return NextResponse.json({ success: true, message: "Order email sent successfully!" });
