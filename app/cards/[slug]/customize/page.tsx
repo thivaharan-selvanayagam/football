@@ -145,30 +145,47 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
         const svgElement = previewRef.current?.querySelector("svg");
         if (!svgElement) return resolve(null);
 
+        // Set a 1.5-second timeout safeguard so the checkout never gets stuck
+        const timeout = setTimeout(() => {
+          resolve(null);
+        }, 1500);
+
         const svgData = new XMLSerializer().serializeToString(svgElement);
         const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
         const blobURL = window.URL.createObjectURL(svgBlob);
 
         const img = new Image();
+        img.crossOrigin = "anonymous"; // Request CORS access for external badge/flag URLs
+
         img.onload = () => {
-          const canvas = document.createElement("canvas");
-          canvas.width = 260;
-          canvas.height = 351;
-          const ctx = canvas.getContext("2d");
-          if (ctx) {
-            ctx.drawImage(img, 0, 0);
-            const pngDataUrl = canvas.toDataURL("image/png");
-            window.URL.revokeObjectURL(blobURL);
-            resolve(pngDataUrl);
-          } else {
+          clearTimeout(timeout);
+          try {
+            const canvas = document.createElement("canvas");
+            canvas.width = 260;
+            canvas.height = 351;
+            const ctx = canvas.getContext("2d");
+            if (ctx) {
+              ctx.drawImage(img, 0, 0);
+              const pngDataUrl = canvas.toDataURL("image/png");
+              window.URL.revokeObjectURL(blobURL);
+              resolve(pngDataUrl);
+            } else {
+              window.URL.revokeObjectURL(blobURL);
+              resolve(null);
+            }
+          } catch (e) {
+            // Handles tainted canvas errors gracefully
             window.URL.revokeObjectURL(blobURL);
             resolve(null);
           }
         };
+
         img.onerror = () => {
+          clearTimeout(timeout);
           window.URL.revokeObjectURL(blobURL);
           resolve(null);
         };
+
         img.src = blobURL;
       } catch (e) {
         console.error("Error capturing card snapshot:", e);
