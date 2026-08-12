@@ -8,7 +8,7 @@
     "start": "next start"
   },
   "engines": {
-    "node": "20"
+    "node": ">=20"
   },
   "dependencies": {
     "@imgly/background-removal": "^1.5.5",
