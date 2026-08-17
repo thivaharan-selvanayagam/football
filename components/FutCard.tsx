@@ -10,6 +10,7 @@ interface FutCardProps {
   photo?: string | null;
   clubBadge?: string | null; 
   countryFlag?: string | null; 
+  brandLogo?: string | null; // Optional custom brand logo path
   textColor?: string;
   size?: number;
   textShiftY?: {
@@ -29,6 +30,7 @@ export default function FutCard({
   photo,
   clubBadge,
   countryFlag, 
+  brandLogo = "/images/logo.png", // ✨ Defaults to your brand logo
   textColor = "#3c3f25",
   size = 260,
   textShiftY,
@@ -67,12 +69,12 @@ export default function FutCard({
         />
       )}
 
-      {/* 2. PLAYER PORTRAIT PHOTO (Rendered underneath text overlay) */}
+      {/* 2. PLAYER PORTRAIT PHOTO */}
       {photo ? (
         <image 
           href={photo} 
           xlinkHref={photo} 
-          x="52" 
+          x="42" 
           y="48" 
           width="176" 
           height="180" 
@@ -82,17 +84,17 @@ export default function FutCard({
         <circle cx="130" cy="150" r="62" fill="rgba(255,255,255,0)" /> 
       )}
 
-      {/* 3. OVERALL RATING & POSITION (Positioned top-left & unhidden) */}
+      {/* 3. OVERALL RATING & POSITION */}
       <g transform={`translate(0, ${metaYShift})`}>
-        <text x="56" y="82" fontFamily="Oswald, sans-serif" fontSize="34" fontWeight="700" fill={textColor} textAnchor="middle">
+        <text x="48" y="78" fontFamily="Oswald, sans-serif" fontSize="34" fontWeight="700" fill={textColor} textAnchor="middle">
           {overall}
         </text>
-        <text x="56" y="100" fontFamily="Oswald, sans-serif" fontSize="14" fontWeight="700" fill={textColor} textAnchor="middle" letterSpacing="0.5">
+        <text x="48" y="96" fontFamily="Oswald, sans-serif" fontSize="14" fontWeight="700" fill={textColor} textAnchor="middle" letterSpacing="0.5">
           {position?.toUpperCase()}
         </text>
       </g>
 
-      {/* 4. PLAYER NAME (Shifted down into the lower gold banner) */}
+      {/* 4. PLAYER NAME */}
       <g transform={`translate(0, ${nameYShift})`}>
         <text x="130" y="252" fontFamily="Oswald, sans-serif" fontSize="22" fontWeight="700" fill={textColor} textAnchor="middle">
           {name ? name.charAt(0).toUpperCase() + name.slice(1) : "Player"}
@@ -117,15 +119,15 @@ export default function FutCard({
         })}
       </g>
 
-      {/* 6. BOTTOM CENTER BADGES */}
-      <g transform="translate(0, -1)"> 
+      {/* 6. BOTTOM CENTER BADGES (Flag & Club) */}
+      <g transform="translate(0, -6)"> 
         {countryFlag && (
           <image
             key={countryFlag} 
             href={countryFlag}
             xlinkHref={countryFlag}
             x="104"
-            y="301"
+            y="305"
             width="26"
             height="15"
             preserveAspectRatio="none"
@@ -138,15 +140,28 @@ export default function FutCard({
             href={clubBadge}
             xlinkHref={clubBadge}
             x="135.5"
-            y="299.5"
+            y="304.5"
             width="17"
             height="17"
             preserveAspectRatio="xMidYMid meet" 
           />
         ) : (
-          <circle cx="144" cy="308" r="8.5" fill="rgba(255,255,255,0.3)" stroke={textColor} strokeWidth="0.5" strokeDasharray="2 2" />
+          <circle cx="144" cy="312" r="8.5" fill="rgba(255,255,255,0.3)" stroke={textColor} strokeWidth="0.5" strokeDasharray="2 2" />
         )}
       </g>
+
+      {/* 7. ✨ BRAND LOGO (Positioned directly under Country Flag and Club Badge) */}
+      {brandLogo && (
+        <image
+          href={brandLogo}
+          xlinkHref={brandLogo}
+          x="93"
+          y="308"
+          width="75"
+          height="30"
+          preserveAspectRatio="xMidYMid meet"
+        />
+      )}
     </svg>
   );
 }

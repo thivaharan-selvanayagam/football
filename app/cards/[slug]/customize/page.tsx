@@ -57,20 +57,26 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
   const [textColor, setTextColor] = useState("#3c3f25"); 
   const [posGroup, setPosGroup] = useState<keyof typeof POSITIONS>("Midfield");
   const [position, setPosition] = useState("CAM");
-  const [club, setClub] = useState("Barcelona");
+  const [club, setClub] = useState("");
   const [country, setCountry] = useState("Canada");
-  const [attrs, setAttrs] = useState<Attrs>({ PAC: 50, SHO: 70, PAS: 30, DRI: 47, DEF: 58, PHY: 46 });
-  const [overall, setOverall] = useState(51);
+  
+  // ✨ Attributes defaulted to >95 (96)
+  const [attrs, setAttrs] = useState<Attrs>({ PAC: 96, SHO: 97, PAS: 98, DRI: 99, DEF: 95, PHY: 96 });
+  
+  // ✨ Overall rating defaulted to >95 (96)
+  const [overall, setOverall] = useState(97);
+  
   const [selectedAddons, setSelectedAddons] = useState<string[]>(
     ADDONS.filter((a) => a.defaultOn).map((a) => a.id)
   );
 
-  const [isCustomClub, setIsCustomClub] = useState(false);
+  const [isCustomClub, setIsCustomClub] = useState(true);
   const [customClubName, setCustomClubName] = useState("");
   const [clubBadge, setClubBadge] = useState<string | null>(null);
   const customBadgeRef = useRef<HTMLInputElement>(null);
+
   const [countryFlag, setCountryFlag] = useState<string | null>("/images/flags/canada.png");
-  const [isCustomCountry, setIsCustomCountry] = useState(false);
+  const [isCustomCountry, setIsCustomCountry] = useState(true);
   const [customCountryName, setCustomCountryName] = useState("");
   const customFlagRef = useRef<HTMLInputElement>(null);
 
@@ -85,26 +91,10 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
     return sum + (a ? a.price : 0);
   }, 0);
 
-  const randomiseAttrs = () => {
-    const a: Attrs = {
-      PAC: Math.floor(Math.random() * 60) + 30,
-      SHO: Math.floor(Math.random() * 60) + 30,
-      PAS: Math.floor(Math.random() * 60) + 30,
-      DRI: Math.floor(Math.random() * 60) + 30,
-      DEF: Math.floor(Math.random() * 60) + 30,
-      PHY: Math.floor(Math.random() * 60) + 30,
-    };
-    setAttrs(a);
-    const avg = Math.round((a.PAC + a.SHO + a.PAS + a.DRI + a.DEF + a.PHY) / 6);
-    setOverall(avg);
-  };
-
-  // Save untouched original image (compressed to canvas to keep request payload size under API limits)
   const onPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Compress raw original photo before bg removal
     const img = new Image();
     const objectUrl = window.URL.createObjectURL(file);
     img.onload = () => {
@@ -136,7 +126,6 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
     };
     img.src = objectUrl;
 
-    // Perform background removal
     try {
       setIsRemovingBg(true);
       const bgRemovalModule = (await import("@imgly/background-removal")) as any;
@@ -163,7 +152,6 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
     }
   };
 
-  // Converts live SVG Card element into a full PNG Data URL snapshot matching the screen preview
   const generateFullCardSnapshot = (): Promise<string | null> => {
     return new Promise((resolve) => {
       try {
@@ -560,23 +548,26 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
                     className="w-full border border-black/10 rounded-lg px-4 py-3 mb-4 text-sm focus-ring" 
                   />
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[250px] overflow-y-auto pr-1">
-                    {COUNTRIES.filter(c => c.toLowerCase().includes((searchQuery || "").toLowerCase())).map((c) => (
-                      <button
-                        key={c}
-                        type="button"
-                        onClick={() => {
-                          setCountry(c);
-                          const filename = c.toLowerCase().trim().replace(/\s+/g, "-");
-                          const newFlagPath = `/images/flags/${filename}.png`;
-                          setCountryFlag(newFlagPath);
-                        }}
-                        className={`border rounded-full py-2 px-3 text-sm flex items-center gap-2 transition ${
-                          country === c ? "border-ink bg-ink text-chalk" : "border-black/10 text-ink/70 hover:border-neutral-300"
-                        }`}
-                      >
-                        {country === c && "✓"} {c}
-                      </button>
-                    ))}
+                    {COUNTRIES
+                      .filter((c) => !["sri lanka", "india"].includes(c.toLowerCase().trim()))
+                      .filter((c) => c.toLowerCase().includes((searchQuery || "").toLowerCase()))
+                      .map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => {
+                            setCountry(c);
+                            const filename = c.toLowerCase().trim().replace(/\s+/g, "-");
+                            const newFlagPath = `/images/flags/${filename}.png`;
+                            setCountryFlag(newFlagPath);
+                          }}
+                          className={`border rounded-full py-2 px-3 text-sm flex items-center gap-2 transition ${
+                            country === c ? "border-ink bg-ink text-chalk" : "border-black/10 text-ink/70 hover:border-neutral-300"
+                          }`}
+                        >
+                          {country === c && "✓"} {c}
+                        </button>
+                      ))}
                   </div>
                 </div>
               ) : (
@@ -643,13 +634,10 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
         )}
 
         {step === 4 && (
-          <StepWrap title="Attributes customisation" subtitle="Customise attributes and ratings or randomise them all.">
+          <StepWrap title="Attributes customisation" subtitle="Customise attributes and ratings.">
             <Card>
               <div className="flex items-center justify-between mb-4">
                 <SectionLabel letter="E" title="Choose attributes" />
-                <button onClick={randomiseAttrs} className="text-xs font-display border border-black/10 rounded-full px-3 py-1.5 text-ink/70">
-                  ↻ Randomise
-                </button>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 {(Object.keys(attrs) as (keyof Attrs)[]).map((k) => (
