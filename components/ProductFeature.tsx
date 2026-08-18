@@ -37,10 +37,10 @@ export default function ProductFeature() {
 
           {/* Pricing Row Layer Block */}
           <div className="flex items-center gap-3 pt-1">
-            <span className="text-3xl font-black text-neutral-900">From $41</span>
-            <span className="text-neutral-400 line-through text-lg font-medium">From $60</span>
+            <span className="text-3xl font-black text-neutral-900">From $42</span>
+            <span className="text-neutral-400 line-through text-lg font-medium">From $70</span>
             <span className="bg-neutral-100 text-neutral-800 font-bold text-[10px] px-2 py-1 rounded-md border border-neutral-200/80">
-              Save 32%
+              Save $28.00
             </span>
           </div>
 

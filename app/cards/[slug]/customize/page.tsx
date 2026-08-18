@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { notFound } from "next/navigation";
 import FutCard from "@/components/FutCard";
 import {
-  getProduct, SIZES, STYLE_DELTA, CardStyle, CardSize,
+  getProduct, SIZES, calculateCardPrice, CardStyle, CardSize,
   POSITIONS, CLUBS, COUNTRIES, ADDONS,
 } from "@/lib/data";
 import { formatRs } from "@/lib/format";
@@ -60,10 +60,10 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
   const [club, setClub] = useState("");
   const [country, setCountry] = useState("Canada");
   
-  // ✨ Attributes defaulted to >95 (96)
+  // Attributes defaulted to >95
   const [attrs, setAttrs] = useState<Attrs>({ PAC: 96, SHO: 97, PAS: 98, DRI: 99, DEF: 95, PHY: 96 });
   
-  // ✨ Overall rating defaulted to >95 (96)
+  // Overall rating defaulted to >95
   const [overall, setOverall] = useState(97);
   
   const [selectedAddons, setSelectedAddons] = useState<string[]>(
@@ -85,7 +85,9 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
   if (!product) return notFound();
 
   const sizeInfo = SIZES.find((s) => s.id === size)!;
-  const basePrice = product.basePrice + STYLE_DELTA[style] + sizeInfo.priceDelta;
+  // Dynamic card pricing calculation fix
+  const { price: basePrice } = calculateCardPrice(product, size, style);
+  
   const addonsPrice = selectedAddons.reduce((sum, id) => {
     const a = ADDONS.find((x) => x.id === id);
     return sum + (a ? a.price : 0);
@@ -280,7 +282,7 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Thivaharan"
+                placeholder="Name"
                 className="w-full border border-black/10 rounded-lg px-4 py-3 mb-4 font-display text-lg text-ink focus-ring"
               />
               
@@ -691,10 +693,11 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
               style={{ width: `${STEP_PCT[step - 1]}%` }}
             />
           </div>
+          {/* Black Next / Add to Cart Button */}
           <button
             onClick={handleNext}
             disabled={!canNext()}
-            className="bg-emerald hover:bg-emerald/90 disabled:opacity-40 transition text-chalk rounded-full px-4 sm:px-5 py-3 text-xs sm:text-sm font-display shrink-0"
+            className="bg-ink hover:bg-black disabled:opacity-40 transition text-white rounded-full px-4 sm:px-5 py-3 text-xs sm:text-sm font-display shrink-0"
           >
             {formatRs(basePrice + addonsPrice)} | {step === 4 ? "Add to cart" : "Next"} →
           </button>

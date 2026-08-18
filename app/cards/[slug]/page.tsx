@@ -3,12 +3,11 @@ import { useState } from "react";
 import Link from "next/link";
 import { notFound, useRouter } from "next/navigation";
 import FutCard from "@/components/FutCard";
-import { getProduct, SIZES, STYLE_DELTA, CardStyle, CardSize } from "@/lib/data";
+import { getProduct, SIZES, calculateCardPrice, CardStyle, CardSize } from "@/lib/data";
 import { formatRs } from "@/lib/format";
 
-const sampleAttrs = { PAC: 84, SHO: 86, PAS: 82, DRI: 88, DEF: 40, PHY: 72 };
+const sampleAttrs = { PAC: 94, SHO: 96, PAS: 92, DRI: 88, DEF: 90, PHY: 92 };
 
-// ✨ Re-calibrated coordinates specifically to prevent text-frame collisions
 const CARD_LAYOUT_SHIFTS = {
   meta: 0,
   name: 0,
@@ -23,9 +22,8 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
 
   if (!product) return notFound();
 
-  const sizeInfo = SIZES.find((s) => s.id === size)!;
-  const price = product.basePrice + STYLE_DELTA[style] + sizeInfo.priceDelta;
-  const compareAt = product.compareAtPrice + STYLE_DELTA[style] + sizeInfo.priceDelta;
+  // ✨ Calculate dynamic price based on the selected size formula and style
+  const { price, compareAt } = calculateCardPrice(product, size, style);
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-10">
@@ -33,11 +31,10 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
         {/* Gallery */}
         <div>
           <div className="bg-cream rounded-2xl p-10 flex justify-center mb-4">
-            {/* Main Preview Card with alignment fixes applied */}
             <FutCard 
               name="Player" 
               position="CAM" 
-              overall={88} 
+              overall={95} 
               attrs={sampleAttrs} 
               gradient={product.gradient} 
               frameImage={product.frameImage} 
@@ -48,7 +45,6 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
           <div className="grid grid-cols-4 gap-3">
             {[0, 1, 2, 3].map((i) => (
               <div key={i} className="bg-cream rounded-lg p-3 flex justify-center">
-                {/* Thumbnails with identical alignment locks applied */}
                 <FutCard 
                   name="Player" 
                   position="CAM" 
@@ -83,7 +79,7 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
             <span>🖼 All photo edits done for you</span>
           </div>
 
-          {/* Style - Heading kept for layout, but choice hidden */}
+          {/* Style */}
           <div className="mb-6">
             <p className="font-display text-sm text-ink mb-3">1. Style</p>
             <div className="grid grid-cols-1">
@@ -97,23 +93,37 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
           <div className="mb-8">
             <p className="font-display text-sm text-ink mb-3">2. Select Size</p>
             <div className="grid grid-cols-3 gap-3">
-              {SIZES.map((s) => (
-                <button
-                  key={s.id}
-                  onClick={() => setSize(s.id)}
-                  className={`border rounded-lg py-3 text-sm font-body transition relative ${
-                    size === s.id ? "border-emerald bg-emerald/5 text-ink" : "border-black/10 text-ink/70"
-                  }`}
-                >
-                  {s.id === "Medium" && (
-                    <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-gold text-[9px] text-chalk px-2 py-0.5 rounded-full whitespace-nowrap">
-                      Most Popular
-                    </span>
-                  )}
-                  {s.label}
-                  <div className="text-[11px] text-ink/50">{s.dim}</div>
-                </button>
-              ))}
+              {SIZES.map((s) => {
+                const isSmall = s.id === "Small";
+
+                return (
+                  <button
+                    key={s.id}
+                    disabled={isSmall}
+                    onClick={() => setSize(s.id)}
+                    className={`border rounded-lg py-3 text-sm font-body transition relative ${
+                      isSmall
+                        ? "opacity-50 cursor-not-allowed bg-black/5 border-black/10 text-ink/40"
+                        : size === s.id
+                        ? "border-emerald bg-emerald/5 text-ink"
+                        : "border-black/10 text-ink/70"
+                    }`}
+                  >
+                    {isSmall && (
+                      <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-red-500 text-[9px] text-chalk px-2 py-0.5 rounded-full whitespace-nowrap font-medium">
+                        Sold Out
+                      </span>
+                    )}
+                    {s.id === "Medium" && (
+                      <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-gold text-[9px] text-chalk px-2 py-0.5 rounded-full whitespace-nowrap">
+                        Most Popular
+                      </span>
+                    )}
+                    {s.label}
+                    <div className="text-[11px] text-ink/50">{s.dim}</div>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -126,8 +136,8 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
 
           <div className="grid grid-cols-3 gap-4 text-center text-xs text-ink/60 border-t border-black/5 pt-6">
             <div>📋 Design preview before shipping</div>
-            <div>£ Money Back Guarantee</div>
-            <div>🚚 Fast worldwide shipping</div>
+            <div>↻ Free replacements</div>
+            <div>🚚 Fast Canadawide shipping</div>
           </div>
 
           <div className="mt-10 border-t border-black/5 pt-6 text-sm text-ink/70 leading-relaxed">
@@ -137,7 +147,7 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
               game-changers, and those who've earned their place in history. Classic, clean, and powerful.
             </p>
             <p>
-              CardsPlug football cards are perfect for football fanatics, birthday gifts or those special achievements. Easy to use card
+              Sas Sports football cards are perfect for football fanatics, birthday gifts or those special achievements. Easy to use card
               builder — design preview before printing, every order backed by our Gold Standard Guarantee.
             </p>
           </div>

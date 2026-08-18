@@ -33,9 +33,8 @@ export default function CardsPage() {
           <h1 className="font-display text-4xl text-ink mb-6">Standard</h1>
           <div className="flex flex-wrap gap-x-10 gap-y-3 text-sm text-ink/70">
             <span>🖨 Preview before printing</span>
-            <span>🌍 Worldwide shipping</span>
+            <span>🌍 Canadawide shipping</span>
             <span>💎 High quality print</span>
-            <span>£ Money back guarantee</span>
             <span>↻ Free replacements</span>
           </div>
         </div>
