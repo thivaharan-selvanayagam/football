@@ -66,9 +66,10 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
   // Overall rating defaulted to >95
   const [overall, setOverall] = useState(97);
   
-  const [selectedAddons, setSelectedAddons] = useState<string[]>(
-    ADDONS.filter((a) => a.defaultOn).map((a) => a.id)
-  );
+  // const [selectedAddons, setSelectedAddons] = useState<string[]>(
+  //   ADDONS.filter((a) => a.defaultOn).map((a) => a.id)
+  // );
+  const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
 
   const [isCustomClub, setIsCustomClub] = useState(true);
   const [customClubName, setCustomClubName] = useState("");
