@@ -1,7 +1,7 @@
 "use client";
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import Image from "next/image"; // ✨ Import Next.js optimized Image component
+import Image from "next/image";
 import { products, collections } from "@/lib/data";
 import { formatRs } from "@/lib/format";
 
@@ -26,12 +26,14 @@ export default function CardsPage() {
   const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
-    <div>
+    <div className="w-full min-h-screen bg-white text-neutral-900">
       {/* Banner */}
-      <div className="bg-cream border-b border-black/5">
+      <div className="bg-white border-b border-neutral-200/80">
         <div className="max-w-7xl mx-auto px-6 py-10">
-          <h1 className="font-display text-4xl text-ink mb-6">Standard</h1>
-          <div className="flex flex-wrap gap-x-10 gap-y-3 text-sm text-ink/70">
+          <h1 className="font-display text-4xl sm:text-5xl font-black text-neutral-900 tracking-tight leading-none mb-6">
+            Standard
+          </h1>
+          <div className="flex flex-wrap gap-x-10 gap-y-3 text-sm font-medium text-neutral-600">
             <span>🖨 Preview before printing</span>
             <span>🌍 Canadawide shipping</span>
             <span>💎 High quality print</span>
@@ -44,19 +46,23 @@ export default function CardsPage() {
         {/* Sidebar */}
         <aside className="space-y-8">
           <div>
-            <h3 className="font-display text-sm text-ink mb-3">Styles</h3>
-            {(["Standard", "Metal"] as const).map((s) => (
-              <label key={s} className="flex items-center gap-2 text-sm text-ink/80 mb-2 cursor-pointer">
-                <input type="checkbox" checked={styleFilter === s} onChange={() => setStyleFilter(s)} className="accent-ink" />
+            <h3 className="font-display font-bold text-sm text-neutral-900 mb-3 uppercase tracking-wider">
+              Styles
+            </h3>
+            {(["Standard"] as const).map((s) => (
+              <label key={s} className="flex items-center gap-2 text-sm font-medium text-neutral-700 mb-2 cursor-pointer hover:text-neutral-900">
+                <input type="checkbox" checked={styleFilter === s} onChange={() => setStyleFilter(s)} className="accent-neutral-900" />
                 {s}
               </label>
             ))}
           </div>
           <div>
-            <h3 className="font-display text-sm text-ink mb-3">Collections</h3>
+            <h3 className="font-display font-bold text-sm text-neutral-900 mb-3 uppercase tracking-wider">
+              Collections
+            </h3>
             {collections.map((c) => (
-              <label key={c} className="flex items-center gap-2 text-sm text-ink/80 mb-2 cursor-pointer">
-                <input type="checkbox" checked={activeCollections.includes(c)} onChange={() => toggleCollection(c)} className="accent-ink" />
+              <label key={c} className="flex items-center gap-2 text-sm font-medium text-neutral-700 mb-2 cursor-pointer hover:text-neutral-900">
+                <input type="checkbox" checked={activeCollections.includes(c)} onChange={() => toggleCollection(c)} className="accent-neutral-900" />
                 {c}
               </label>
             ))}
@@ -67,15 +73,22 @@ export default function CardsPage() {
         <div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
             {pageItems.map((p) => (
-              <Link key={p.slug} href={`/cards/${p.slug}`} className="group relative block bg-white rounded-xl border border-black/5 hover:shadow-card transition p-5 text-center">
-                <span className="absolute top-3 left-3 text-[10px] bg-red-600 text-white px-2 py-0.5 rounded z-10">Sale</span>
+              <Link 
+                key={p.slug} 
+                href={`/cards/${p.slug}`} 
+                className="group relative block bg-white rounded-2xl border border-neutral-200/80 hover:border-neutral-300 hover:shadow-lg transition duration-300 p-5 text-center"
+              >
+                <span className="absolute top-3 left-3 text-[10px] bg-red-600 text-white font-bold px-2 py-0.5 rounded-md z-10">
+                  Sale
+                </span>
                 {p.bestSeller && (
-                  <span className="absolute top-3 right-3 text-[10px] bg-emerald text-chalk px-2 py-0.5 rounded-full flex items-center gap-1 z-10">★ Best Seller</span>
+                  <span className="absolute top-3 right-3 text-[10px] bg-emerald-600 text-white font-bold px-2 py-0.5 rounded-full flex items-center gap-1 z-10">
+                    ★ Best Seller
+                  </span>
                 )}
                 
                 {/* Image Container */}
                 <div className="relative flex justify-center mb-4 mt-2 aspect-[2/3] w-full max-w-[150px] mx-auto group-hover:-translate-y-1 transition duration-300">
-                  {/* ✨ Clean, standard image view with no overlays ✨ */}
                   <Image
                     src={p.frameImage}
                     alt={p.name}
@@ -86,12 +99,18 @@ export default function CardsPage() {
                   />
                 </div>
 
-                <h3 className="font-display text-base text-ink leading-snug mb-1 mt-4">{p.name}</h3>
-                <p className="text-sm font-semibold text-ink/90">
+                <h3 className="font-display font-bold text-base text-neutral-900 leading-snug mb-1 mt-4">
+                  {p.name}
+                </h3>
+                <p className="text-sm font-bold text-neutral-900">
                   From {formatRs(p.basePrice)}{" "}
-                  <span className="line-through text-xs text-ink/30 font-normal ml-1">{formatRs(p.compareAtPrice)}</span>
+                  <span className="line-through text-xs text-neutral-400 font-medium ml-1">
+                    {formatRs(p.compareAtPrice)}
+                  </span>
                 </p>
-                <p className="text-[11px] text-emerald mt-0.5">You save {formatRs(p.compareAtPrice - p.basePrice)}</p>
+                <p className="text-[11px] font-bold text-emerald-600 mt-0.5">
+                  You save {formatRs(p.compareAtPrice - p.basePrice)}
+                </p>
               </Link>
             ))}
           </div>
@@ -102,7 +121,11 @@ export default function CardsPage() {
                 <button
                   key={i}
                   onClick={() => setPage(i + 1)}
-                  className={`w-8 h-8 rounded-full text-sm font-body ${page === i + 1 ? "bg-ink text-chalk" : "bg-white border border-black/10 text-ink/70"}`}
+                  className={`w-8 h-8 rounded-full text-sm font-bold transition ${
+                    page === i + 1 
+                      ? "bg-[#232323] text-white shadow-md" 
+                      : "bg-white border border-neutral-200 text-neutral-700 hover:bg-neutral-50"
+                  }`}
                 >
                   {i + 1}
                 </button>

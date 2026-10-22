@@ -40,29 +40,43 @@ export default function FaqPage() {
   const [open, setOpen] = useState<number | null>(0);
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-16">
-      <p className="uppercase tracking-[0.25em] text-gold text-xs mb-2 text-center">We're here to help</p>
-      <h1 className="font-display text-4xl text-ink text-center mb-12">Frequently asked questions</h1>
-      <div className="space-y-3">
-        {FAQS.map((f, i) => (
-          <div key={f.q} className="border border-black/5 rounded-xl bg-white overflow-hidden">
-            <button
-              onClick={() => setOpen(open === i ? null : i)}
-              className="w-full flex items-center justify-between text-left px-6 py-5"
-            >
-              <span className="font-display text-sm text-ink pr-4">{f.q}</span>
-              <span className={`text-ink/40 transition-transform ${open === i ? "rotate-45" : ""}`}>+</span>
-            </button>
-            {open === i && <p className="px-6 pb-5 text-sm text-ink/60 leading-relaxed">{f.a}</p>}
-          </div>
-        ))}
+    <section className="w-full min-h-screen bg-white text-neutral-900 flex items-center justify-center py-16 px-6 sm:px-12 md:px-24">
+      <div className="w-full max-w-3xl mx-auto">
+        <p className="uppercase tracking-[0.25em] text-gold text-xs mb-2 text-center font-medium">
+          We're here to help
+        </p>
+        <h1 className="font-display text-4xl sm:text-5xl font-black text-neutral-900 tracking-tight text-center mb-12 leading-none">
+          Frequently asked questions
+        </h1>
+        
+        <div className="space-y-3">
+          {FAQS.map((f, i) => (
+            <div key={f.q} className="border border-neutral-200/80 rounded-xl bg-white overflow-hidden shadow-sm">
+              <button
+                onClick={() => setOpen(open === i ? null : i)}
+                className="w-full flex items-center justify-between text-left px-6 py-5 hover:bg-neutral-50/50 transition"
+              >
+                <span className="font-display font-bold text-sm text-neutral-900 pr-4">{f.q}</span>
+                <span className={`text-neutral-400 font-bold transition-transform ${open === i ? "rotate-45" : ""}`}>
+                  +
+                </span>
+              </button>
+              {open === i && (
+                <p className="px-6 pb-5 text-sm text-neutral-600 leading-relaxed border-t border-neutral-100 pt-3">
+                  {f.a}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <p className="text-center text-sm text-neutral-600 mt-10">
+          Still need help?{" "}
+          <a href="/support" className="text-neutral-900 font-bold underline underline-offset-4 hover:text-black">
+            Contact our support team
+          </a>
+        </p>
       </div>
-      <p className="text-center text-sm text-ink/60 mt-10">
-        Still need help?{" "}
-        <a href="/support" className="text-ink underline underline-offset-4">
-          Contact our support team
-        </a>
-      </p>
-    </div>
+    </section>
   );
 }

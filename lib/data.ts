@@ -17,13 +17,8 @@ export interface CardProduct {
 }
 
 export const collections = [
-  "Best Seller",
   "FC27",
   "FC26",
-  "FC25",
-  "FC24",
-  "S23",
-  "S22",
 ];
 
 export const products: CardProduct[] = [

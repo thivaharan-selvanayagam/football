@@ -6,6 +6,7 @@ import { notFound, useRouter } from "next/navigation";
 import FutCard from "@/components/FutCard";
 import { getProduct, SIZES, calculateCardPrice, CardStyle, CardSize } from "@/lib/data";
 import { formatRs } from "@/lib/format";
+import { useCart, CartItem } from "@/lib/cart";
 
 const sampleAttrs = { PAC: 94, SHO: 96, PAS: 92, DRI: 88, DEF: 90, PHY: 92 };
 
@@ -18,12 +19,13 @@ const CARD_LAYOUT_SHIFTS = {
 export default function ProductPage({ params }: { params: { slug: string } }) {
   const product = getProduct(params.slug);
   const router = useRouter();
+  const { addItem } = useCart();
+
   const [style, setStyle] = useState<CardStyle>("Standard");
   const [size, setSize] = useState<CardSize>("Medium");
 
   // Modal State for Simple Assisted Order Form
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     customerName: "",
     customerEmail: "",
@@ -101,13 +103,9 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
     reader.readAsDataURL(file);
   };
 
-  const handleManualOrderSubmit = async (e: React.FormEvent) => {
+  // ✨ Modified: Adds filled details directly to cart and routes to cart/checkout
+  const handleManualOrderSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!formData.customerName || !formData.customerPhone) {
-      alert("Please fill in your name and phone number.");
-      return;
-    }
 
     if (!uploadedPhoto) {
       alert("Please upload a Player Portrait Photo.");
@@ -119,58 +117,49 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
       return;
     }
 
-    try {
-      setIsSubmitting(true);
-      const res = await fetch("/api/send-order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customerDetails: {
-            name: formData.customerName,
-            email: formData.customerEmail || "N/A",
-            phone: formData.customerPhone,
-            address: formData.customerAddress || "N/A",
-          },
-          cartItems: [
-            {
-              productName: product.name,
-              productSlug: product.slug,
-              name: formData.playerName || "Player",
-              position: formData.position,
-              overall: formData.overall,
-              style,
-              size,
-              club: formData.clubName || "Custom Club",
-              country: formData.country || "Canada",
-              attributes: {
-                PAC: formData.PAC,
-                SHO: formData.SHO,
-                PAS: formData.PAS,
-                DRI: formData.DRI,
-                DEF: formData.DEF,
-                PHY: formData.PHY,
-              },
-              rawOriginalPhoto: uploadedPhoto,
-              fullCardPreview: uploadedPhoto,
-              clubBadge: uploadedClubBadge,
-            },
-          ],
-        }),
-      });
+    // Construct Cart item with filled form details
+    const item: CartItem = {
+      id: `${Date.now()}`,
+      productSlug: product.slug,
+      productName: product.name,
+      name: formData.playerName || "Player",
+      style,
+      size,
+      position: formData.position || "CAM",
+      club: formData.clubName || "Custom Club",
+      country: formData.country || "Canada",
+      attributes: {
+        PAC: formData.PAC,
+        SHO: formData.SHO,
+        PAS: formData.PAS,
+        DRI: formData.DRI,
+        DEF: formData.DEF,
+        PHY: formData.PHY,
+      },
+      overall: formData.overall,
+      addons: [],
+      unitPrice: price,
+      addonsPrice: 0,
+      qty: 1,
+      gradient: product.gradient,
+      textColor: "#3c3f25",
+      rawOriginalPhoto: uploadedPhoto,
+      fullCardPreview: uploadedPhoto,
+      clubBadge: uploadedClubBadge,
+      // Pre-fill customer details if collected
+      customerInfo: {
+        name: formData.customerName,
+        phone: formData.customerPhone,
+        email: formData.customerEmail,
+        address: formData.customerAddress,
+      },
+    } as any;
 
-      const data = await res.json();
-      setIsSubmitting(false);
-
-      if (data.success) {
-        alert("Thank you! Your order details and custom uploads were received. We will process your order and contact you shortly.");
-        setIsFormOpen(false);
-      } else {
-        alert("Failed to send details: " + (data.error || "Please try again."));
-      }
-    } catch (err: any) {
-      setIsSubmitting(false);
-      alert("Error submitting order: " + err.message);
-    }
+    addItem(item);
+    setIsFormOpen(false);
+    
+    // Direct navigation to cart / checkout page
+    router.push("/cart");
   };
 
   return (
@@ -324,15 +313,14 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
 
             <h2 className="font-display text-2xl text-ink mb-1">Assisted Order Form</h2>
             <p className="text-xs text-ink/60 mb-6">
-              Enter your details below and upload your photos. Our team will design your card and contact you.
+              Enter your card details below and upload your photos. You will proceed to checkout to complete your order.
             </p>
 
             <form onSubmit={handleManualOrderSubmit} className="space-y-4">
               {/* CUSTOMER CONTACT DETAILS */}
               <div>
-                <label className="block text-xs font-bold text-ink/70 mb-1">Your Full Name *</label>
+                <label className="block text-xs font-bold text-ink/70 mb-1">Your Full Name</label>
                 <input
-                  required
                   type="text"
                   placeholder="e.g. John Doe"
                   value={formData.customerName}
@@ -343,9 +331,8 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-ink/70 mb-1">Phone Number *</label>
+                  <label className="block text-xs font-bold text-ink/70 mb-1">Phone Number</label>
                   <input
-                    required
                     type="tel"
                     placeholder="e.g. +1 234 567 890"
                     value={formData.customerPhone}
@@ -363,17 +350,6 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
                     className="w-full border border-black/10 rounded-lg px-3.5 py-2.5 text-sm focus-ring"
                   />
                 </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-ink/70 mb-1">Shipping Address</label>
-                <textarea
-                  rows={2}
-                  placeholder="Full street address, city, country"
-                  value={formData.customerAddress}
-                  onChange={(e) => setFormData({ ...formData, customerAddress: e.target.value })}
-                  className="w-full border border-black/10 rounded-lg px-3.5 py-2.5 text-sm focus-ring"
-                />
               </div>
 
               <hr className="my-4 border-black/5" />
@@ -496,10 +472,9 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
 
               <button
                 type="submit"
-                disabled={isSubmitting}
-                className="w-full bg-ink hover:bg-black text-white font-display py-3.5 rounded-full text-sm transition mt-6 disabled:opacity-50"
+                className="w-full bg-ink hover:bg-black text-white font-display py-3.5 rounded-full text-sm transition mt-6"
               >
-                {isSubmitting ? "Submitting Order..." : "Submit Manual Order Request"}
+                Proceed to Checkout →
               </button>
             </form>
           </div>
