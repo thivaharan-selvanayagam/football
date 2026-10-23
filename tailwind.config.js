@@ -14,6 +14,7 @@ module.exports = {
         pitch: "#0B2A22",
         emerald: "#1F6F50",
         chalk: "#FAFAF7",
+        cream: '#f9fafb', // (Tailwind neutral-50)
       },
       fontFamily: {
         display: ["Oswald", "Arial Narrow", "sans-serif"],

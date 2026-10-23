@@ -12,10 +12,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="font-body antialiased bg-cream text-ink">
+      <body className="font-body antialiased bg-neutral-50 text-neutral-900">
         <CartProvider>
           <Header />
-          {/* Added top padding to ensure content sits cleanly below the fixed header */}
+          {/* Top padding ensures content sits cleanly below the fixed floating header */}
           <main className="pt-28 md:pt-32 min-h-screen">
             {children}
           </main>

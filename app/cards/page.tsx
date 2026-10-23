@@ -26,9 +26,9 @@ export default function CardsPage() {
   const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
-    <div className="w-full min-h-screen bg-white text-neutral-900">
+    <div className="w-full min-h-screen bg-neutral-50 text-neutral-900">
       {/* Banner */}
-      <div className="bg-white border-b border-neutral-200/80">
+      <div className="bg-neutral-100/80 border-b border-neutral-200/80">
         <div className="max-w-7xl mx-auto px-6 py-10">
           <h1 className="font-display text-4xl sm:text-5xl font-black text-neutral-900 tracking-tight leading-none mb-6">
             Standard
@@ -37,7 +37,7 @@ export default function CardsPage() {
             <span>🖨 Preview before printing</span>
             <span>🌍 Canadawide shipping</span>
             <span>💎 High quality print</span>
-            <span>↻ Free replacements</span>
+            {/* <span>↻ Free replacements</span> */}
           </div>
         </div>
       </div>
@@ -76,7 +76,7 @@ export default function CardsPage() {
               <Link 
                 key={p.slug} 
                 href={`/cards/${p.slug}`} 
-                className="group relative block bg-white rounded-2xl border border-neutral-200/80 hover:border-neutral-300 hover:shadow-lg transition duration-300 p-5 text-center"
+                className="group relative block bg-white rounded-2xl border border-neutral-200/80 hover:border-neutral-300 hover:shadow-md transition duration-300 p-5 text-center"
               >
                 <span className="absolute top-3 left-3 text-[10px] bg-red-600 text-white font-bold px-2 py-0.5 rounded-md z-10">
                   Sale
@@ -124,7 +124,7 @@ export default function CardsPage() {
                   className={`w-8 h-8 rounded-full text-sm font-bold transition ${
                     page === i + 1 
                       ? "bg-[#232323] text-white shadow-md" 
-                      : "bg-white border border-neutral-200 text-neutral-700 hover:bg-neutral-50"
+                      : "bg-white border border-neutral-200 text-neutral-700 hover:bg-neutral-100"
                   }`}
                 >
                   {i + 1}

@@ -20,11 +20,10 @@ export default function Header() {
   return (
     <header className="fixed top-5 left-1/2 z-50 w-[92%] max-w-5xl -translate-x-1/2">
       {/* Floating White Capsule Navbar Container */}
-      <nav className="flex items-center justify-between rounded-full bg-white px-6 py-2 shadow-xl border border-slate-100">
+      <nav className="flex items-center justify-between rounded-full bg-white px-6 py-2 shadow-xl border border-neutral-200/80">
         
-        {/* Left Group: Bigger Logo & Left-Aligned Navigation Links */}
+        {/* Left Group: Logo & Links */}
         <div className="flex items-center gap-8 md:gap-10">
-          {/* Bigger Brand Logo */}
           <Link href="/" className="flex items-center -my-1">
             <img
               src="/images/logo.png"
@@ -33,7 +32,7 @@ export default function Header() {
             />
           </Link>
 
-          {/* Desktop Links (Aligned Left Next to Logo) */}
+          {/* Desktop Links */}
           <div className="hidden items-center gap-6 md:flex">
             {links.map((l) => (
               <Link
@@ -42,7 +41,7 @@ export default function Header() {
                 className={`text-sm font-medium transition-colors hover:text-black ${
                   pathname === l.href
                     ? "text-black font-semibold"
-                    : "text-slate-700"
+                    : "text-neutral-600"
                 }`}
               >
                 {l.label}
@@ -51,10 +50,9 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Right Section: Cart + Buy Now Button */}
+        {/* Right Section: Cart + CTA */}
         <div className="hidden md:flex items-center gap-4">
-          {/* Cart Icon */}
-          <Link href="/cart" className="relative p-1 text-slate-800 hover:text-black">
+          <Link href="/cart" className="relative p-1 text-neutral-800 hover:text-black">
             <svg
               width="22"
               height="22"
@@ -74,7 +72,6 @@ export default function Header() {
             )}
           </Link>
 
-          {/* Dark Capsule CTA Button */}
           <Link
             href="/cards"
             className="rounded-full bg-[#2a2a2a] px-6 py-2 text-sm font-semibold text-white transition hover:bg-black"
@@ -83,9 +80,9 @@ export default function Header() {
           </Link>
         </div>
 
-        {/* Mobile Right Controls */}
+        {/* Mobile Controls */}
         <div className="flex items-center gap-3 md:hidden">
-          <Link href="/cart" className="relative p-1 text-slate-800">
+          <Link href="/cart" className="relative p-1 text-neutral-800">
             <svg
               width="20"
               height="20"
@@ -105,12 +102,11 @@ export default function Header() {
             )}
           </Link>
 
-          {/* Mobile Toggle Button */}
           <button
             type="button"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
-            className="p-1 text-slate-800 focus:outline-none"
+            className="p-1 text-neutral-800 focus:outline-none"
           >
             {isMenuOpen ? (
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -126,16 +122,16 @@ export default function Header() {
 
       </nav>
 
-      {/* Mobile Menu Drawer */}
+      {/* Mobile Drawer */}
       {isMenuOpen && (
-        <div className="mt-2 flex flex-col gap-4 rounded-3xl bg-white p-6 shadow-xl border border-slate-100 md:hidden">
+        <div className="mt-2 flex flex-col gap-4 rounded-3xl bg-white p-6 shadow-xl border border-neutral-200/80 md:hidden">
           {links.map((l) => (
             <Link
               key={l.label}
               href={l.href}
               onClick={() => setIsMenuOpen(false)}
               className={`text-base font-medium ${
-                pathname === l.href ? "text-black font-bold" : "text-slate-600"
+                pathname === l.href ? "text-black font-bold" : "text-neutral-600"
               }`}
             >
               {l.label}
