@@ -12,7 +12,7 @@ export default function SupportPage() {
   };
 
   return (
-    <section className="w-full min-h-screen bg-white text-neutral-900 flex items-center justify-center py-16 px-6 sm:px-12 md:px-24">
+    <section className="w-full min-h-screen bg-neutral-50 text-neutral-900 flex items-center justify-center py-16 px-6 sm:px-12 md:px-24">
       <div className="w-full max-w-5xl mx-auto grid md:grid-cols-2 gap-12 md:gap-16 items-start">
         
         {/* Left Column: Contact Details */}
@@ -27,7 +27,7 @@ export default function SupportPage() {
             </p>
           </div>
 
-          <div className="space-y-6 text-sm border-t border-neutral-100 pt-6">
+          <div className="space-y-6 text-sm border-t border-neutral-200/80 pt-6">
             <div>
               <p className="font-display font-bold text-neutral-900 mb-1">Email</p>
               <p className="text-neutral-600">hisassports@gmail.com</p>
@@ -56,7 +56,7 @@ export default function SupportPage() {
                 placeholder="Your name"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="w-full border border-neutral-200 rounded-xl px-4 py-3 text-sm focus-ring text-neutral-900 placeholder:text-neutral-400"
+                className="w-full border border-neutral-200 rounded-xl px-4 py-3 text-sm focus-ring text-neutral-900 placeholder:text-neutral-400 bg-white"
               />
               <input
                 required
@@ -64,13 +64,13 @@ export default function SupportPage() {
                 placeholder="Email address"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className="w-full border border-neutral-200 rounded-xl px-4 py-3 text-sm focus-ring text-neutral-900 placeholder:text-neutral-400"
+                className="w-full border border-neutral-200 rounded-xl px-4 py-3 text-sm focus-ring text-neutral-900 placeholder:text-neutral-400 bg-white"
               />
               <input
                 placeholder="Order number (optional)"
                 value={form.order}
                 onChange={(e) => setForm({ ...form, order: e.target.value })}
-                className="w-full border border-neutral-200 rounded-xl px-4 py-3 text-sm focus-ring text-neutral-900 placeholder:text-neutral-400"
+                className="w-full border border-neutral-200 rounded-xl px-4 py-3 text-sm focus-ring text-neutral-900 placeholder:text-neutral-400 bg-white"
               />
               <textarea
                 required
@@ -78,7 +78,7 @@ export default function SupportPage() {
                 rows={5}
                 value={form.message}
                 onChange={(e) => setForm({ ...form, message: e.target.value })}
-                className="w-full border border-neutral-200 rounded-xl px-4 py-3 text-sm focus-ring text-neutral-900 placeholder:text-neutral-400"
+                className="w-full border border-neutral-200 rounded-xl px-4 py-3 text-sm focus-ring text-neutral-900 placeholder:text-neutral-400 bg-white"
               />
               <button
                 type="submit"

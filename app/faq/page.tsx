@@ -40,7 +40,7 @@ export default function FaqPage() {
   const [open, setOpen] = useState<number | null>(0);
 
   return (
-    <section className="w-full min-h-screen bg-white text-neutral-900 flex items-center justify-center py-16 px-6 sm:px-12 md:px-24">
+    <section className="w-full min-h-screen bg-neutral-50 text-neutral-900 flex items-center justify-center py-16 px-6 sm:px-12 md:px-24">
       <div className="w-full max-w-3xl mx-auto">
         <p className="uppercase tracking-[0.25em] text-gold text-xs mb-2 text-center font-medium">
           We're here to help
@@ -54,7 +54,7 @@ export default function FaqPage() {
             <div key={f.q} className="border border-neutral-200/80 rounded-xl bg-white overflow-hidden shadow-sm">
               <button
                 onClick={() => setOpen(open === i ? null : i)}
-                className="w-full flex items-center justify-between text-left px-6 py-5 hover:bg-neutral-50/50 transition"
+                className="w-full flex items-center justify-between text-left px-6 py-5 hover:bg-neutral-100/50 transition"
               >
                 <span className="font-display font-bold text-sm text-neutral-900 pr-4">{f.q}</span>
                 <span className={`text-neutral-400 font-bold transition-transform ${open === i ? "rotate-45" : ""}`}>
