@@ -17,7 +17,7 @@ export default function ProductFeature() {
           {/* Subtle Top Accent Tags */}
           <div className="space-y-3">
             <span className="inline-block bg-neutral-100 text-neutral-700 text-[11px] font-medium px-2.5 py-1 rounded-md tracking-wide border border-neutral-200/60">
-              2026 Design
+              New 2027 Design
             </span>
             <p className="text-[11px] font-bold tracking-[0.2em] text-neutral-400 uppercase">
               Designed with Quality
@@ -37,35 +37,35 @@ export default function ProductFeature() {
 
           {/* Pricing Row Layer Block */}
           <div className="flex items-center gap-3 pt-1">
-            <span className="text-3xl font-black text-neutral-900">From $42</span>
+            <span className="text-3xl font-black text-neutral-900">From $45</span>
             <span className="text-neutral-400 line-through text-lg font-medium">From $70</span>
             <span className="bg-neutral-100 text-neutral-800 font-bold text-[10px] px-2 py-1 rounded-md border border-neutral-200/80">
-              Save $28.00
+              Save $25.00
             </span>
           </div>
 
           {/* Explanatory Product Copy Description */}
           <p className="text-neutral-600 text-sm sm:text-base leading-relaxed font-medium">
-            A statement piece for your living room. Each table is individually crafted from sustainably sourced walnut, featuring organic curves and a hand-rubbed oil finish that highlights the natural grain.
+            A statement piece for your child’s bedroom. Customize your card with personal stats, team colors, and professional designs using our easy real-time editor. Our team then fine-tunes your artwork for premium printing on durable card stock and delivers.
           </p>
 
           {/* Detailed Bullet Points Grid Callout list wrapper */}
           <ul className="space-y-2.5 text-xs font-bold tracking-wide text-neutral-700 pt-2">
             <li className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 bg-neutral-900 rounded-full shrink-0" />
-              Sustainably sourced American walnut
+              Easy Customization
             </li>
             <li className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 bg-neutral-900 rounded-full shrink-0" />
-              Hand-rubbed natural oil finish
+              Diverse Design Options
             </li>
             <li className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 bg-neutral-900 rounded-full shrink-0" />
-              Unique grain patterns on every piece
+              Professional Designer Touch
             </li>
             <li className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 bg-neutral-900 rounded-full shrink-0" />
-              10-year craftsmanship warranty
+              Premium Trading Card Quality
             </li>
           </ul>
 
