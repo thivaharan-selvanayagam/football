@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 
 const FAQS = [
   {
@@ -36,46 +37,77 @@ const FAQS = [
   },
 ];
 
-export default function FaqPage() {
+export default function AboutPage() {
   const [open, setOpen] = useState<number | null>(0);
 
   return (
-    <section className="w-full min-h-screen bg-neutral-50 text-neutral-900 flex items-center justify-center py-16 px-6 sm:px-12 md:px-24">
-      <div className="w-full max-w-3xl mx-auto">
-        <p className="uppercase tracking-[0.25em] text-gold text-xs mb-2 text-center font-medium">
-          We're here to help
-        </p>
-        <h1 className="font-display text-4xl sm:text-5xl font-black text-neutral-900 tracking-tight text-center mb-12 leading-none">
-          Frequently asked questions
-        </h1>
-        
-        <div className="space-y-3">
-          {FAQS.map((f, i) => (
-            <div key={f.q} className="border border-neutral-200/80 rounded-xl bg-white overflow-hidden shadow-sm">
-              <button
-                onClick={() => setOpen(open === i ? null : i)}
-                className="w-full flex items-center justify-between text-left px-6 py-5 hover:bg-neutral-100/50 transition"
-              >
-                <span className="font-display font-bold text-sm text-neutral-900 pr-4">{f.q}</span>
-                <span className={`text-neutral-400 font-bold transition-transform ${open === i ? "rotate-45" : ""}`}>
-                  +
-                </span>
-              </button>
-              {open === i && (
-                <p className="px-6 pb-5 text-sm text-neutral-600 leading-relaxed border-t border-neutral-100 pt-3">
-                  {f.a}
-                </p>
-              )}
+    <section className="w-full min-h-screen bg-neutral-50 text-neutral-900 py-16 px-6 sm:px-12 md:px-24">
+      <div className="w-full max-w-3xl mx-auto space-y-16">
+
+        {/* ⚽ ABOUT US STORY SECTION */}
+        <div className="text-center space-y-6">
+          <span className="inline-block bg-[#232323] text-white text-[11px] font-bold px-3 py-1 rounded-md tracking-wider uppercase">
+            Our Story
+          </span>
+          <h1 className="font-display text-4xl sm:text-5xl font-black text-neutral-900 tracking-tight leading-none">
+            About SAS Sports
+          </h1>
+          
+          <div className="bg-white rounded-2xl border border-neutral-200/80 p-8 sm:p-10 shadow-sm text-left space-y-5">
+            <p className="text-neutral-700 text-base sm:text-lg leading-relaxed font-medium">
+              Just three brothers living and breathing the beautiful game. If we’re not out on the pitch playing or training to sharpen our game, you’ll find us glued to the TV watching a match or battling it out on the PS5 playing FC. Soccer isn't just a sport to us, it’s how we grew up, how we stay connected, and the standard for everything we do.
+            </p>
+            <p className="text-neutral-700 text-base sm:text-lg leading-relaxed font-medium">
+              We launched this business to take that lifelong obsession and build something meaningful around it, creating a way to support our own growth while giving back to the community that loves the game just as much as we do. Thanks for backing our vision, supporting our business, and being a part of this journey with us. Let's grow together!
+            </p>
+
+            <div className="pt-2 flex items-center gap-3 border-t border-neutral-100">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
+              <span className="text-xs font-bold text-neutral-500 uppercase tracking-widest">
+                The SAS Sports Team
+              </span>
             </div>
-          ))}
+          </div>
         </div>
 
-        <p className="text-center text-sm text-neutral-600 mt-10">
-          Still need help?{" "}
-          <a href="/support" className="text-neutral-900 font-bold underline underline-offset-4 hover:text-black">
-            Contact our support team
-          </a>
-        </p>
+        {/* ❓ FREQUENTLY ASKED QUESTIONS SECTION */}
+        <div className="border-t border-neutral-200/80 pt-16">
+          <p className="uppercase tracking-[0.25em] text-neutral-400 text-xs mb-2 text-center font-bold">
+            Got Questions?
+          </p>
+          <h2 className="font-display text-3xl sm:text-4xl font-black text-neutral-900 tracking-tight text-center mb-10 leading-tight">
+            Frequently Asked Questions
+          </h2>
+          
+          <div className="space-y-3">
+            {FAQS.map((f, i) => (
+              <div key={f.q} className="border border-neutral-200/80 rounded-xl bg-white overflow-hidden shadow-sm">
+                <button
+                  onClick={() => setOpen(open === i ? null : i)}
+                  className="w-full flex items-center justify-between text-left px-6 py-5 hover:bg-neutral-100/50 transition"
+                >
+                  <span className="font-display font-bold text-sm text-neutral-900 pr-4">{f.q}</span>
+                  <span className={`text-neutral-400 font-bold transition-transform ${open === i ? "rotate-45" : ""}`}>
+                    +
+                  </span>
+                </button>
+                {open === i && (
+                  <p className="px-6 pb-5 text-sm text-neutral-600 leading-relaxed border-t border-neutral-100 pt-3">
+                    {f.a}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <p className="text-center text-sm text-neutral-600 mt-10">
+            Still need help?{" "}
+            <Link href="/support" className="text-neutral-900 font-bold underline underline-offset-4 hover:text-black">
+              Contact our support team
+            </Link>
+          </p>
+        </div>
+
       </div>
     </section>
   );
