@@ -27,9 +27,6 @@ const FAQS = [
     q: "What is Gold Standard Guarantee?",
     a: "If your card arrives damaged or isn't what you expected, we'll replace it or refund you — no hassle. Add Damage Protection at checkout for full transit coverage.",
   },
-  {
-    
-  },
 ];
 
 export default function AboutPage() {
