@@ -34,9 +34,9 @@ export default function CardsPage() {
             Standard
           </h1>
           <div className="flex flex-wrap gap-x-10 gap-y-3 text-sm font-medium text-neutral-600">
-            <span>🖨 Preview before printing</span>
-            <span>🌍 Canadawide shipping</span>
-            <span>💎 High quality print</span>
+            <span>🖨 Preview Before Printing</span>
+            <span>🌍 Canadawide Shipping</span>
+            <span>💎 High Quality Print</span>
             {/* <span>↻ Free replacements</span> */}
           </div>
         </div>
@@ -45,7 +45,7 @@ export default function CardsPage() {
       <div className="max-w-7xl mx-auto px-6 py-10 grid md:grid-cols-[220px_1fr] gap-10">
         {/* Sidebar */}
         <aside className="space-y-8">
-          <div>
+          {/* <div>
             <h3 className="font-display font-bold text-sm text-neutral-900 mb-3 uppercase tracking-wider">
               Styles
             </h3>
@@ -55,7 +55,7 @@ export default function CardsPage() {
                 {s}
               </label>
             ))}
-          </div>
+          </div> */}
           <div>
             <h3 className="font-display font-bold text-sm text-neutral-900 mb-3 uppercase tracking-wider">
               Collections
