@@ -10,7 +10,7 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ email: "", name: "", address: "", city: "", country: "", postcode: "" });
 
-  const shipping = items.length ? 1500 : 0;
+  const shipping = items.length ? 10 : 0;
   const total = subtotal + shipping;
 
   const handlePay = async () => {
