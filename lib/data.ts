@@ -99,11 +99,9 @@ export const POSITIONS = {
 };
 
 export const CLUBS = [
-  "Barcelona", "Real Madrid", "Atletico Madrid", "Athletic Club", "Sevilla",
-  "Real Betis", "Real Sociedad", "Celta Vigo", "Getafe", "Osasuna",
+  "UMSC",
 ];
 
 export const COUNTRIES = [
-  "Canada", "United States", "England", "Scotland", "Brazil", "Argentina",
-  "France", "Germany", "Spain", "Portugal",
+  "Canada",
 ];

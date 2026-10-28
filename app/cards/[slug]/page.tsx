@@ -16,6 +16,10 @@ const CARD_LAYOUT_SHIFTS = {
   stats: 0,
 };
 
+// Default preview shield assets
+const DEFAULT_PREVIEW_BADGE = "/images/presets/umsc.png";
+const DEFAULT_PREVIEW_FLAG = "/images/flags/canada.png";
+
 export default function ProductPage({ params }: { params: { slug: string } }) {
   const product = getProduct(params.slug);
   const router = useRouter();
@@ -34,7 +38,7 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
     position: "CAM",
     overall: 97,
     country: "Canada",
-    clubName: "",
+    clubName: "UMSC",
     PAC: 96,
     SHO: 97,
     PAS: 98,
@@ -121,7 +125,7 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
       style,
       size,
       position: formData.position || "CAM",
-      club: formData.clubName || "Custom Club",
+      club: formData.clubName || "UMSC",
       country: formData.country || "Canada",
       attributes: {
         PAC: formData.PAC,
@@ -138,9 +142,11 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
       qty: 1,
       gradient: product.gradient,
       textColor: "#3c3f25",
+      photo: uploadedPhoto,
       rawOriginalPhoto: uploadedPhoto,
       fullCardPreview: uploadedPhoto,
-      clubBadge: uploadedClubBadge,
+      clubBadge: uploadedClubBadge || DEFAULT_PREVIEW_BADGE,
+      countryFlag: DEFAULT_PREVIEW_FLAG,
       customerInfo: {
         name: formData.customerName,
         phone: formData.customerPhone,
@@ -167,6 +173,8 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
               attrs={sampleAttrs} 
               gradient={product.gradient} 
               frameImage={product.frameImage} 
+              clubBadge={DEFAULT_PREVIEW_BADGE}
+              countryFlag={DEFAULT_PREVIEW_FLAG}
               size={280} 
               textShiftY={CARD_LAYOUT_SHIFTS} 
             />
@@ -181,6 +189,8 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
                   attrs={sampleAttrs} 
                   gradient={product.gradient} 
                   frameImage={product.frameImage} 
+                  clubBadge={DEFAULT_PREVIEW_BADGE}
+                  countryFlag={DEFAULT_PREVIEW_FLAG}
                   size={60} 
                   textShiftY={CARD_LAYOUT_SHIFTS} 
                 />

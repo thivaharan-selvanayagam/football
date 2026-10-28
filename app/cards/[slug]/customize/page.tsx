@@ -57,24 +57,25 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
   const [textColor, setTextColor] = useState("#3c3f25"); 
   const [posGroup, setPosGroup] = useState<keyof typeof POSITIONS>("Midfield");
   const [position, setPosition] = useState("CAM");
-  const [club, setClub] = useState("");
+  
+  // Set default club to UMSC and show default preset tab in Step 2
+  const [club, setClub] = useState("UMSC");
+  const [clubBadge, setClubBadge] = useState<string | null>("/images/presets/umsc.png");
+  const [isCustomClub, setIsCustomClub] = useState(false);
+  const [customClubName, setCustomClubName] = useState("");
+  const customBadgeRef = useRef<HTMLInputElement>(null);
+
+  // Set default country to Canada and show default preset tab in Step 3
   const [country, setCountry] = useState("Canada");
+  const [countryFlag, setCountryFlag] = useState<string | null>("/images/flags/canada.png");
+  const [isCustomCountry, setIsCustomCountry] = useState(false);
+  const [customCountryName, setCustomCountryName] = useState("");
+  const customFlagRef = useRef<HTMLInputElement>(null);
   
   const [attrs, setAttrs] = useState<Attrs>({ PAC: 96, SHO: 97, PAS: 98, DRI: 99, DEF: 95, PHY: 96 });
   const [overall, setOverall] = useState(97);
   
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
-
-  const [isCustomClub, setIsCustomClub] = useState(true);
-  const [customClubName, setCustomClubName] = useState("");
-  const [clubBadge, setClubBadge] = useState<string | null>(null);
-  const customBadgeRef = useRef<HTMLInputElement>(null);
-
-  const [countryFlag, setCountryFlag] = useState<string | null>("/images/flags/canada.png");
-  const [isCustomCountry, setIsCustomCountry] = useState(true);
-  const [customCountryName, setCustomCountryName] = useState("");
-  const customFlagRef = useRef<HTMLInputElement>(null);
-
   const [isRemovingBg, setIsRemovingBg] = useState(false);
 
   if (!product) return notFound();
@@ -90,6 +91,8 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
   const onPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    e.target.value = "";
 
     const img = new Image();
     const objectUrl = URL.createObjectURL(file);
@@ -229,6 +232,9 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
         gradient: product.gradient,
         textColor,
         rawOriginalPhoto: originalPhoto,
+        photo,                        // ✨ Save cropped player photo
+        clubBadge,                    // ✨ Save selected club badge
+        countryFlag,                  // ✨ Save country flag
         fullCardPreview: fullCardPreviewUrl || photo,
       } as any;
 
@@ -244,7 +250,25 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
-    <div className="min-h-screen bg-neutral-50 flex flex-col md:grid md:grid-cols-2 text-neutral-900">
+    <div className="min-h-screen bg-neutral-50 flex flex-col md:grid md:grid-cols-2 text-neutral-900 relative">
+
+      {/* FULL-SCREEN BLOCKING POPUP WHILE IMAGE IS PROCESSING */}
+      {isRemovingBg && (
+        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-opacity">
+          <div className="bg-[#212121]/95 text-white border border-white/10 rounded-2xl px-8 py-6 shadow-2xl flex items-center gap-4 animate-in fade-in zoom-in-95 duration-200">
+            <div className="relative flex items-center justify-center w-10 h-10 shrink-0">
+              <div className="w-10 h-10 border-2 border-amber-400/30 border-t-amber-400 rounded-full animate-spin" />
+              <svg className="w-5 h-5 text-amber-400 absolute" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            
+            <p className="text-sm sm:text-base font-semibold tracking-wide text-neutral-100">
+              Image processing, please wait...
+            </p>
+          </div>
+        </div>
+      )}
       
       {/* 📱 MOBILE CARD PREVIEW CONTAINER */}
       <div className="flex md:hidden flex-col items-center justify-center bg-white border-b border-neutral-200/80 py-6 px-4 sticky top-16 z-30 shadow-sm">
@@ -285,7 +309,7 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
                   <img src={photo} alt="upload" className="w-16 h-16 rounded-xl object-cover border border-neutral-200" />
                 ) : (
                   <div className="w-16 h-16 rounded-xl bg-neutral-100 border border-dashed border-neutral-300 flex items-center justify-center text-xs text-neutral-400 font-medium">
-                    {isRemovingBg ? "..." : "No image"}
+                    No image
                   </div>
                 )}
                 
@@ -301,16 +325,7 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
                   }}
                   className="flex-1 border border-dashed border-neutral-300 rounded-xl py-4 text-sm text-neutral-600 hover:border-neutral-400 transition font-medium disabled:opacity-50 flex items-center justify-center gap-2 bg-neutral-50"
                 >
-                  {isRemovingBg ? (
-                    <>
-                      <span className="w-4 h-4 border-2 border-neutral-900 border-t-transparent rounded-full animate-spin" />
-                      Removing background...
-                    </>
-                  ) : photo ? (
-                    "Edit Photo Framing"
-                  ) : (
-                    "Click to upload a photo"
-                  )}
+                  {photo ? "Edit Photo Framing" : "Click to upload a photo"}
                 </button>
                 <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onPhotoChange} />
               </div>
