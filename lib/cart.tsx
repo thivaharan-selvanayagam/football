@@ -1,5 +1,13 @@
 "use client";
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import {
+  calculateCardPrice,
+  CardSize,
+  CardStyle,
+  getProduct,
+  isValidPromoCode,
+  PROMO_CODE,
+} from "@/lib/data";
 
 export interface CartItem {
   id: string;
@@ -29,11 +37,16 @@ export interface CartItem {
 interface CartContextValue {
   items: CartItem[];
   hydrated: boolean;
+  promoCode: string | null;
+  applyPromoCode: (code: string) => boolean;
+  removePromoCode: () => void;
   addItem: (item: CartItem) => void;
   removeItem: (id: string) => void;
   updateQty: (id: string, qty: number) => void;
   clear: () => void;
   subtotal: number;
+  discountTotal: number;
+  discountedSubtotal: number;
   count: number;
 }
 
@@ -41,6 +54,7 @@ const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [promoCode, setPromoCode] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -50,6 +64,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setItems(JSON.parse(raw));
       } catch {}
     }
+    const savedPromo = localStorage.getItem("cardsplug-promo");
+    if (savedPromo && isValidPromoCode(savedPromo)) {
+      setPromoCode(PROMO_CODE);
+    }
     setHydrated(true);
   }, []);
 
@@ -57,17 +75,79 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (hydrated) localStorage.setItem("cardsplug-cart", JSON.stringify(items));
   }, [items, hydrated]);
 
+  useEffect(() => {
+    if (!hydrated) return;
+    if (promoCode) {
+      localStorage.setItem("cardsplug-promo", promoCode);
+    } else {
+      localStorage.removeItem("cardsplug-promo");
+    }
+  }, [promoCode, hydrated]);
+
+  const applyPromoCode = (code: string): boolean => {
+    if (isValidPromoCode(code)) {
+      setPromoCode(PROMO_CODE);
+      return true;
+    }
+    return false;
+  };
+
+  const removePromoCode = () => setPromoCode(null);
+
   const addItem = (item: CartItem) => setItems((prev) => [...prev, item]);
   const removeItem = (id: string) => setItems((prev) => prev.filter((i) => i.id !== id));
   const updateQty = (id: string, qty: number) =>
     setItems((prev) => prev.map((i) => (i.id === id ? { ...i, qty: Math.max(1, qty) } : i)));
-  const clear = () => setItems([]);
+  const clear = () => {
+    setItems([]);
+    setPromoCode(null);
+  };
 
-  const subtotal = items.reduce((sum, i) => sum + (i.unitPrice + i.addonsPrice) * i.qty, 0);
+  const subtotal = items.reduce((sum, i) => {
+    const product = getProduct(i.productSlug);
+    const tier = calculateCardPrice(
+      product,
+      (i.size as CardSize) || "Medium",
+      (i.style as CardStyle) || "Standard"
+    );
+    const unit = product ? tier.price : i.unitPrice;
+    return sum + (unit + (i.addonsPrice || 0)) * i.qty;
+  }, 0);
+
+  const discountTotal = promoCode
+    ? items.reduce((sum, i) => {
+        const product = getProduct(i.productSlug);
+        const tier = calculateCardPrice(
+          product,
+          (i.size as CardSize) || "Medium",
+          (i.style as CardStyle) || "Standard"
+        );
+        const perUnitSaving = Math.max(0, tier.price - tier.promoPrice);
+        return sum + perUnitSaving * i.qty;
+      }, 0)
+    : 0;
+
+  const discountedSubtotal = Math.max(0, subtotal - discountTotal);
   const count = items.reduce((sum, i) => sum + i.qty, 0);
 
   return (
-    <CartContext.Provider value={{ items, hydrated, addItem, removeItem, updateQty, clear, subtotal, count }}>
+    <CartContext.Provider
+      value={{
+        items,
+        hydrated,
+        promoCode,
+        applyPromoCode,
+        removePromoCode,
+        addItem,
+        removeItem,
+        updateQty,
+        clear,
+        subtotal,
+        discountTotal,
+        discountedSubtotal,
+        count,
+      }}
+    >
       {children}
     </CartContext.Provider>
   );

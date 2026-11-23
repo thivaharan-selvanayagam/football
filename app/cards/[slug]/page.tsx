@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import Link from "next/link";
 import { notFound, useRouter } from "next/navigation";
 import FutCard from "@/components/FutCard";
-import { getProduct, SIZES, calculateCardPrice, CardStyle, CardSize } from "@/lib/data";
+import { getProduct, SIZES, calculateCardPrice, CardStyle, CardSize, PROMO_CODE } from "@/lib/data";
 import { formatRs } from "@/lib/format";
 import { useCart, CartItem } from "@/lib/cart";
 
@@ -55,7 +55,7 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
 
   if (!product) return notFound();
 
-  const { price, compareAt } = calculateCardPrice(product, size, style);
+  const { price, compareAt, promoPrice, soldOut } = calculateCardPrice(product, size, style);
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -207,10 +207,24 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
           </div>
           <h1 className="font-display font-black text-3xl text-neutral-900 mb-3">{product.name}</h1>
           <div className="flex items-baseline gap-3 mb-1">
-            <span className="font-display text-2xl font-bold text-neutral-900">{formatRs(price)}</span>
+            <span className="font-display text-2xl font-bold text-neutral-900">
+              Offer Price: {formatRs(price)}
+            </span>
             <span className="line-through text-neutral-400 font-medium">{formatRs(compareAt)}</span>
+            {soldOut && (
+              <span className="bg-red-600 text-white text-xs font-bold px-2.5 py-0.5 rounded-full">
+                Sold Out
+              </span>
+            )}
           </div>
-          <p className="text-emerald-600 text-sm font-bold mb-6">You save {formatRs(compareAt - price)}</p>
+          <div className="flex flex-wrap items-center gap-2 mb-6 mt-2">
+            <span className="text-emerald-700 bg-emerald-50 border border-emerald-200 text-xs sm:text-sm font-bold px-3 py-1 rounded-full">
+              🏷 {formatRs(promoPrice)} with promo code <span className="underline">{PROMO_CODE}</span>
+            </span>
+            <span className="text-neutral-500 text-xs font-medium">
+              (Save {formatRs(compareAt - promoPrice)} total)
+            </span>
+          </div>
 
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs font-medium text-neutral-600 mb-8">
             <span>💎 Incredible print quality</span>
@@ -233,33 +247,40 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
             <p className="font-display font-bold text-sm text-neutral-900 mb-3">2. Select Size</p>
             <div className="grid grid-cols-3 gap-3">
               {SIZES.map((s) => {
-                const isSmall = s.id === "Small";
+                const sPricing = calculateCardPrice(product, s.id, style);
+                const isSoldOut = s.soldOut;
 
                 return (
                   <button
                     key={s.id}
-                    disabled={isSmall}
+                    type="button"
                     onClick={() => setSize(s.id)}
-                    className={`border rounded-lg py-3 text-sm font-medium transition relative ${
-                      isSmall
-                        ? "opacity-50 cursor-not-allowed bg-neutral-200/50 border-neutral-300 text-neutral-400"
-                        : size === s.id
+                    className={`border rounded-lg py-3 px-2 text-sm font-medium transition relative ${
+                      size === s.id
                         ? "border-neutral-900 bg-neutral-100 text-neutral-900 font-bold"
+                        : isSoldOut
+                        ? "opacity-70 bg-neutral-100 border-neutral-300 text-neutral-500 hover:border-neutral-400"
                         : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300"
                     }`}
                   >
-                    {isSmall && (
+                    {isSoldOut && (
                       <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-red-600 text-[9px] text-white px-2 py-0.5 rounded-full whitespace-nowrap font-bold">
                         Sold Out
                       </span>
                     )}
-                    {s.id === "Medium" && (
+                    {s.id === "Medium" && !isSoldOut && (
                       <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-amber-500 text-[9px] text-white px-2 py-0.5 rounded-full whitespace-nowrap font-bold">
                         Most Popular
                       </span>
                     )}
-                    {s.label}
+                    <div>{s.label}</div>
                     <div className="text-[11px] text-neutral-500">{s.dim}</div>
+                    <div className="mt-1 text-xs font-bold text-neutral-900">
+                      ${sPricing.price}{" "}
+                      <span className="line-through text-[10px] text-neutral-400 font-normal">
+                        ${sPricing.compareAt}
+                      </span>
+                    </div>
                   </button>
                 );
               })}
@@ -268,16 +289,26 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
 
           {/* MAIN CUSTOMIZER BUTTON */}
           <button
-            onClick={() => router.push(`/cards/${product.slug}/customize?style=${style}&size=${size}`)}
-            className="w-full bg-[#232323] hover:bg-black transition text-white font-display font-bold py-4 rounded-full flex items-center justify-center gap-2 text-sm tracking-wide mb-3 shadow-md"
+            disabled={soldOut}
+            onClick={() => {
+              if (!soldOut) {
+                router.push(`/cards/${product.slug}/customize?style=${style}&size=${size}`);
+              }
+            }}
+            className="w-full bg-[#232323] hover:bg-black disabled:opacity-40 disabled:cursor-not-allowed transition text-white font-display font-bold py-4 rounded-full flex items-center justify-center gap-2 text-sm tracking-wide mb-3 shadow-md"
           >
-            ✎ Customise my card &nbsp; {formatRs(price)}
+            {soldOut
+              ? `${size} Size is Sold Out`
+              : `✎ Customise my card   ${formatRs(price)}`}
           </button>
 
           {/* SIMPLE MANUAL ORDER BUTTON */}
           <button
-            onClick={() => setIsFormOpen(true)}
-            className="w-full bg-white border border-neutral-300 hover:bg-neutral-100 transition text-neutral-900 font-display font-bold py-3.5 rounded-full flex items-center justify-center gap-2 text-xs sm:text-sm tracking-wide mb-8 shadow-sm"
+            disabled={soldOut}
+            onClick={() => {
+              if (!soldOut) setIsFormOpen(true);
+            }}
+            className="w-full bg-white border border-neutral-300 hover:bg-neutral-100 disabled:opacity-40 disabled:cursor-not-allowed transition text-neutral-900 font-display font-bold py-3.5 rounded-full flex items-center justify-center gap-2 text-xs sm:text-sm tracking-wide mb-8 shadow-sm"
           >
             📋 Need help? Order via Simple Form
           </button>

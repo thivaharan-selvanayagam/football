@@ -36,12 +36,17 @@ export default function ProductFeature() {
           </div>
 
           {/* Pricing Row Layer Block */}
-          <div className="flex items-center gap-3 pt-1">
-            <span className="text-3xl font-black text-neutral-900">From $45</span>
-            <span className="text-neutral-400 line-through text-lg font-medium">From $70</span>
-            <span className="bg-neutral-100 text-neutral-800 font-bold text-[10px] px-2 py-1 rounded-md border border-neutral-200/80">
-              Save $25.00
-            </span>
+          <div className="space-y-2 pt-1">
+            <div className="flex items-center gap-3">
+              <span className="text-3xl font-black text-neutral-900">From $45</span>
+              <span className="text-neutral-400 line-through text-lg font-medium">$79</span>
+              <span className="bg-neutral-100 text-neutral-800 font-bold text-[10px] px-2 py-1 rounded-md border border-neutral-200/80">
+                Save $34.00
+              </span>
+            </div>
+            <p className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 inline-block px-3 py-1 rounded-full">
+              🏷 From $39 with promo code <span className="underline">SAS2027</span>
+            </p>
           </div>
 
           {/* Explanatory Product Copy Description */}
@@ -91,7 +96,7 @@ export default function ProductFeature() {
           
           {/* Discount Percentage Float Drop Badge */}
           <div className="absolute top-4 right-4 sm:right-12 bg-black text-white font-black text-xs px-2.5 py-1 rounded-full shadow tracking-wider z-20">
-            -32%
+            -43%
           </div>
 
           {/* Clean Static Image Frame Display */}

@@ -48,7 +48,8 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
   const previewRef = useRef<HTMLDivElement>(null);
 
   const style = (search.get("style") as CardStyle) || "Standard";
-  const size = (search.get("size") as CardSize) || "Medium";
+  const rawSize = (search.get("size") as CardSize) || "Medium";
+  const size: CardSize = SIZES.find((s) => s.id === rawSize && !s.soldOut) ? rawSize : "Medium";
 
   const [step, setStep] = useState(1);
   const [name, setName] = useState("");

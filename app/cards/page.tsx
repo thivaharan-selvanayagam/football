@@ -2,7 +2,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { products, collections } from "@/lib/data";
+import { products, collections, PROMO_CODE } from "@/lib/data";
 import { formatRs } from "@/lib/format";
 
 const PAGE_SIZE = 18;
@@ -109,7 +109,7 @@ export default function CardsPage() {
                   </span>
                 </p>
                 <p className="text-[11px] font-bold text-emerald-600 mt-0.5">
-                  You save {formatRs(p.compareAtPrice - p.basePrice)}
+                  From {formatRs(p.promoPrice)} with code {PROMO_CODE}
                 </p>
               </Link>
             ))}

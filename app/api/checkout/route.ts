@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
-import { ADDONS, calculateCardPrice, CardSize, CardStyle, getProduct } from "@/lib/data";
+import {
+  ADDONS,
+  calculateCardPrice,
+  CardSize,
+  CardStyle,
+  getProduct,
+  isValidPromoCode,
+  PROMO_CODE,
+} from "@/lib/data";
 
 const SHIPPING_COST_CAD = 10; // $10.00 CAD flat rate
 
@@ -19,10 +27,24 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { items, customer } = body;
+    const { items, customer, promoCode } = body;
 
     if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: "Your cart is empty." }, { status: 400 });
+    }
+
+    const promoApplied = isValidPromoCode(promoCode);
+
+    // Prevent checkout of sold-out sizes
+    for (const i of items) {
+      const size = (i.size as CardSize) || "Medium";
+      const tier = calculateCardPrice(getProduct(i.productSlug), size, (i.style as CardStyle) || "Standard");
+      if (tier.soldOut) {
+        return NextResponse.json(
+          { error: `The ${size} shield size is currently sold out. Please remove it or select Small or Medium.` },
+          { status: 400 }
+        );
+      }
     }
 
     const stripe = new Stripe(stripeKey);
@@ -37,10 +59,9 @@ export async function POST(req: NextRequest) {
       const product = getProduct(i.productSlug);
       const size = (i.size as CardSize) || "Medium";
       const style = (i.style as CardStyle) || "Standard";
+      const tier = calculateCardPrice(product, size, style);
 
-      const serverUnitPrice = product
-        ? calculateCardPrice(product, size, style).price
-        : Number(i.unitPrice) || 0;
+      const serverUnitPrice = promoApplied ? tier.promoPrice : tier.price;
 
       const selectedAddonIds: string[] = Array.isArray(i.addons) ? i.addons : [];
       const serverAddonsPrice = selectedAddonIds.length
@@ -59,6 +80,7 @@ export async function POST(req: NextRequest) {
         `${style} · ${size}`,
         `${i.position || "CAM"} (${i.overall ?? 99} OVR)`,
         [i.club, i.country].filter(Boolean).join(" / "),
+        promoApplied ? `Promo ${PROMO_CODE} applied` : null,
         addonNames ? `Add-ons: ${addonNames}` : null,
       ]
         .filter(Boolean)
@@ -89,7 +111,7 @@ export async function POST(req: NextRequest) {
       .join(", ");
 
     const itemsSummary = items
-      .map((i: any) => `${i.productName || i.productSlug} (${i.name} x${i.qty || 1})`)
+      .map((i: any) => `${i.productName || i.productSlug} (${i.name} · ${i.size} x${i.qty || 1})`)
       .join("; ")
       .slice(0, 490);
 
@@ -111,6 +133,7 @@ export async function POST(req: NextRequest) {
       ],
       metadata: {
         order_ref: orderRef,
+        promo_code: promoApplied ? PROMO_CODE : "",
         customer_name: (customer?.name || "").slice(0, 490),
         customer_email: (customer?.email || "").slice(0, 490),
         customer_phone: (customer?.phone || "").slice(0, 490),
@@ -120,6 +143,7 @@ export async function POST(req: NextRequest) {
       payment_intent_data: {
         metadata: {
           order_ref: orderRef,
+          promo_code: promoApplied ? PROMO_CODE : "",
           customer_name: (customer?.name || "").slice(0, 490),
           shipping_address: formattedAddress.slice(0, 490),
         },

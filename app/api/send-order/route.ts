@@ -123,6 +123,7 @@ export async function POST(req: Request) {
 
     const orderRef = body.orderRef || "N/A";
     const stripeSessionId = body.stripeSessionId || null;
+    const promoCode = body.promoCode || customerDetails.promoCode || null;
     const totalPaid =
       typeof body.totalPaid === "number"
         ? `$${body.totalPaid.toFixed(2)} ${body.currency || "CAD"}`
@@ -138,6 +139,7 @@ export async function POST(req: Request) {
           <h3 style="margin-top: 0; color: #0f172a; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px;">💳 Payment &amp; Customer Details</h3>
           <p style="margin: 6px 0;"><strong>Order Reference:</strong> ${orderRef}</p>
           ${totalPaid ? `<p style="margin: 6px 0;"><strong>Total Paid (Stripe):</strong> ${totalPaid}</p>` : ""}
+          ${promoCode ? `<p style="margin: 6px 0;"><strong>Promo Code Used:</strong> ${promoCode}</p>` : ""}
           ${stripeSessionId ? `<p style="margin: 6px 0;"><strong>Stripe Session ID:</strong> ${stripeSessionId}</p>` : ""}
           <p style="margin: 6px 0;"><strong>Customer Name:</strong> ${customerDetails.name}</p>
           <p style="margin: 6px 0;"><strong>Email Address:</strong> ${customerDetails.email}</p>

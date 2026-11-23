@@ -83,6 +83,7 @@ function SuccessContent() {
             email: storedCustomer?.email || verifyData.customer?.email || "N/A",
             phone: storedCustomer?.phone || verifyData.customer?.phone || "N/A",
             address: storedCustomer?.address || verifyData.customer?.address || "N/A",
+            promoCode: storedCustomer?.promoCode || null,
           };
 
           if (storedItems.length > 0) {
@@ -109,6 +110,7 @@ function SuccessContent() {
 
         localStorage.removeItem("cardsplug-pending-customer");
         localStorage.removeItem("cardsplug-cart");
+        localStorage.removeItem("cardsplug-promo");
         clear();
         setStatus("confirmed");
       } catch {

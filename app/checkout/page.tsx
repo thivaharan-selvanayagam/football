@@ -2,13 +2,25 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart";
+import { calculateCardPrice, CardSize, CardStyle, getProduct } from "@/lib/data";
 import { formatRs } from "@/lib/format";
 
 export default function CheckoutPage() {
-  const { items, hydrated, subtotal } = useCart();
+  const {
+    items,
+    hydrated,
+    subtotal,
+    promoCode,
+    applyPromoCode,
+    removePromoCode,
+    discountTotal,
+    discountedSubtotal,
+  } = useCart();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [codeInput, setCodeInput] = useState("");
+  const [promoError, setPromoError] = useState<string | null>(null);
   const [form, setForm] = useState({
     email: "",
     phone: "",
@@ -20,7 +32,7 @@ export default function CheckoutPage() {
   });
 
   const shipping = items.length ? 10 : 0;
-  const total = subtotal + shipping;
+  const total = discountedSubtotal + shipping;
 
   const isFormComplete =
     form.email.trim() !== "" &&
@@ -29,6 +41,17 @@ export default function CheckoutPage() {
     form.city.trim() !== "" &&
     form.postcode.trim() !== "" &&
     form.country.trim() !== "";
+
+  const handleApplyPromo = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!codeInput.trim()) return;
+    if (applyPromoCode(codeInput)) {
+      setCodeInput("");
+      setPromoError(null);
+    } else {
+      setPromoError("Invalid promo code.");
+    }
+  };
 
   const handlePay = async () => {
     if (!isFormComplete) {
@@ -40,7 +63,6 @@ export default function CheckoutPage() {
     setError(null);
 
     try {
-      // Save customer shipping details locally so /checkout/success can include them in the order email
       const fullAddress = [form.address, form.city, form.postcode, form.country]
         .map((s) => s.trim())
         .filter(Boolean)
@@ -53,6 +75,7 @@ export default function CheckoutPage() {
           email: form.email.trim(),
           phone: form.phone.trim() || "N/A",
           address: fullAddress,
+          promoCode: promoCode || null,
         })
       );
 
@@ -77,7 +100,11 @@ export default function CheckoutPage() {
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items: checkoutItems, customer: form }),
+        body: JSON.stringify({
+          items: checkoutItems,
+          customer: form,
+          promoCode: promoCode || undefined,
+        }),
       });
       const data = await res.json();
 
@@ -205,19 +232,73 @@ export default function CheckoutPage() {
       <div className="bg-cream rounded-xl p-6 h-fit sticky top-24 border border-black/5">
         <h2 className="font-display text-lg text-ink mb-4">Order summary</h2>
         <div className="space-y-2 mb-4 max-h-64 overflow-auto pr-1">
-          {items.map((i) => (
-            <div key={i.id} className="flex justify-between text-sm text-ink/70">
-              <span className="truncate pr-2">
-                {i.productName} ({i.name}) × {i.qty}
-              </span>
-              <span>{formatRs((i.unitPrice + i.addonsPrice) * i.qty)}</span>
-            </div>
-          ))}
+          {items.map((i) => {
+            const product = getProduct(i.productSlug);
+            const tier = calculateCardPrice(
+              product,
+              (i.size as CardSize) || "Medium",
+              (i.style as CardStyle) || "Standard"
+            );
+            const unit = promoCode ? tier.promoPrice : tier.price;
+            return (
+              <div key={i.id} className="flex justify-between text-sm text-ink/70">
+                <span className="truncate pr-2">
+                  {i.productName} ({i.name} · {i.size}) × {i.qty}
+                </span>
+                <span>{formatRs((unit + (i.addonsPrice || 0)) * i.qty)}</span>
+              </div>
+            );
+          })}
         </div>
+
+        {/* Promo Code Input */}
+        <div className="mb-4 pt-2 border-t border-black/10">
+          {promoCode ? (
+            <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 text-xs">
+              <span className="font-bold text-emerald-700">
+                ✓ Promo <span className="underline">{promoCode}</span> applied
+              </span>
+              <button
+                type="button"
+                onClick={removePromoCode}
+                className="text-ink/60 hover:text-red-600 font-bold"
+              >
+                Remove
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleApplyPromo} className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Promo code"
+                value={codeInput}
+                onChange={(e) => {
+                  setCodeInput(e.target.value);
+                  if (promoError) setPromoError(null);
+                }}
+                className="flex-1 border border-black/10 rounded-lg px-3 py-2 text-xs uppercase placeholder:normal-case bg-white focus-ring"
+              />
+              <button
+                type="submit"
+                className="bg-ink text-chalk font-display px-4 py-2 rounded-lg text-xs"
+              >
+                Apply
+              </button>
+            </form>
+          )}
+          {promoError && <p className="text-xs text-red-600 mt-1">{promoError}</p>}
+        </div>
+
         <div className="flex justify-between text-sm text-ink/70 mb-2">
           <span>Subtotal</span>
           <span>{formatRs(subtotal)}</span>
         </div>
+        {promoCode && discountTotal > 0 && (
+          <div className="flex justify-between text-sm text-emerald-700 font-semibold mb-2">
+            <span>Promo ({promoCode})</span>
+            <span>-{formatRs(discountTotal)}</span>
+          </div>
+        )}
         <div className="flex justify-between text-sm text-ink/70 mb-4">
           <span>Shipping</span>
           <span>{formatRs(shipping)}</span>
