@@ -4,6 +4,7 @@ import {
   calculateCardPrice,
   CardSize,
   CardStyle,
+  getApparelProduct,
   getProduct,
   isValidPromoCode,
   PROMO_CODE,
@@ -11,6 +12,7 @@ import {
 
 export interface CartItem {
   id: string;
+  itemType?: "card" | "apparel";
   productSlug: string;
   productName: string;
   name: string; // player name on card
@@ -94,7 +96,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const removePromoCode = () => setPromoCode(null);
 
-  const addItem = (item: CartItem) => setItems((prev) => [...prev, item]);
+  const addItem = (item: CartItem) =>
+    setItems((prev) => {
+      if (item.itemType === "apparel" || getApparelProduct(item.productSlug)) {
+        const existingIdx = prev.findIndex(
+          (p) => p.productSlug === item.productSlug && p.size === item.size
+        );
+        if (existingIdx !== -1) {
+          return prev.map((p, idx) =>
+            idx === existingIdx ? { ...p, qty: p.qty + item.qty } : p
+          );
+        }
+      }
+      return [...prev, item];
+    });
   const removeItem = (id: string) => setItems((prev) => prev.filter((i) => i.id !== id));
   const updateQty = (id: string, qty: number) =>
     setItems((prev) => prev.map((i) => (i.id === id ? { ...i, qty: Math.max(1, qty) } : i)));
@@ -104,19 +119,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const subtotal = items.reduce((sum, i) => {
+    const apparel = getApparelProduct(i.productSlug);
+    if (apparel) {
+      return sum + (apparel.price + (i.addonsPrice || 0)) * i.qty;
+    }
     const product = getProduct(i.productSlug);
-    const tier = calculateCardPrice(
-      product,
-      (i.size as CardSize) || "Medium",
-      (i.style as CardStyle) || "Standard"
-    );
-    const unit = product ? tier.price : i.unitPrice;
-    return sum + (unit + (i.addonsPrice || 0)) * i.qty;
+    if (product) {
+      const tier = calculateCardPrice(
+        product,
+        (i.size as CardSize) || "Medium",
+        (i.style as CardStyle) || "Standard"
+      );
+      return sum + (tier.price + (i.addonsPrice || 0)) * i.qty;
+    }
+    return sum + (i.unitPrice + (i.addonsPrice || 0)) * i.qty;
   }, 0);
 
   const discountTotal = promoCode
     ? items.reduce((sum, i) => {
         const product = getProduct(i.productSlug);
+        if (!product) return sum;
         const tier = calculateCardPrice(
           product,
           (i.size as CardSize) || "Medium",

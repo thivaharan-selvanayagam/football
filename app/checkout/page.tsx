@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart";
-import { calculateCardPrice, CardSize, CardStyle, getProduct } from "@/lib/data";
+import { calculateCardPrice, CardSize, CardStyle, getApparelProduct, getProduct } from "@/lib/data";
 import { formatRs } from "@/lib/format";
 
 export default function CheckoutPage() {
@@ -82,6 +82,7 @@ export default function CheckoutPage() {
       // Strip large base64 images from the Stripe session request payload
       const checkoutItems = items.map((i) => ({
         id: i.id,
+        itemType: i.itemType,
         productSlug: i.productSlug,
         productName: i.productName,
         name: i.name,
@@ -233,17 +234,28 @@ export default function CheckoutPage() {
         <h2 className="font-display text-lg text-ink mb-4">Order summary</h2>
         <div className="space-y-2 mb-4 max-h-64 overflow-auto pr-1">
           {items.map((i) => {
+            const apparel = getApparelProduct(i.productSlug);
             const product = getProduct(i.productSlug);
-            const tier = calculateCardPrice(
-              product,
-              (i.size as CardSize) || "Medium",
-              (i.style as CardStyle) || "Standard"
-            );
-            const unit = promoCode ? tier.promoPrice : tier.price;
+            const tier = product
+              ? calculateCardPrice(
+                  product,
+                  (i.size as CardSize) || "Medium",
+                  (i.style as CardStyle) || "Standard"
+                )
+              : null;
+            const unit = apparel
+              ? apparel.price
+              : tier
+              ? promoCode
+                ? tier.promoPrice
+                : tier.price
+              : i.unitPrice;
             return (
               <div key={i.id} className="flex justify-between text-sm text-ink/70">
                 <span className="truncate pr-2">
-                  {i.productName} ({i.name} · {i.size}) × {i.qty}
+                  {apparel
+                    ? `${i.productName} (Size ${i.size}) × ${i.qty}`
+                    : `${i.productName} (${i.name} · ${i.size}) × ${i.qty}`}
                 </span>
                 <span>{formatRs((unit + (i.addonsPrice || 0)) * i.qty)}</span>
               </div>

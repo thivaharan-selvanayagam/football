@@ -83,6 +83,22 @@ export async function POST(req: Request) {
         }
       }
 
+      const isApparel =
+        item.itemType === "apparel" ||
+        (typeof item.productSlug === "string" && item.productSlug.startsWith("shiva-"));
+
+      if (isApparel) {
+        itemsHtml += `
+          <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 20px; background: #fff;">
+            <h3 style="margin-top: 0; color: #1e293b;">Item #${index + 1}: ${item.productName || "Fundraiser Apparel"} (Qty: ${item.qty || 1})</h3>
+            <p><strong>Category:</strong> Shiva Italy 2027 Fundraiser Clothing</p>
+            <p><strong>Selected Size:</strong> ${item.size || "M"}</p>
+            <p><strong>Unit Price:</strong> $${item.unitPrice ?? "N/A"}.00 CAD</p>
+          </div>
+        `;
+        return;
+      }
+
       const attrs = item.attributes || item.attrs || {};
       const addonList = Array.isArray(item.addons) && item.addons.length > 0 ? item.addons.join(", ") : "None";
 

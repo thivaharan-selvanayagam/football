@@ -5,6 +5,7 @@ import {
   calculateCardPrice,
   CardSize,
   CardStyle,
+  getApparelProduct,
   getProduct,
   isValidPromoCode,
   PROMO_CODE,
@@ -35,10 +36,13 @@ export async function POST(req: NextRequest) {
 
     const promoApplied = isValidPromoCode(promoCode);
 
-    // Prevent checkout of sold-out sizes
+    // Prevent checkout of sold-out shield sizes
     for (const i of items) {
+      if (getApparelProduct(i.productSlug)) continue;
+      const product = getProduct(i.productSlug);
+      if (!product) continue;
       const size = (i.size as CardSize) || "Medium";
-      const tier = calculateCardPrice(getProduct(i.productSlug), size, (i.style as CardStyle) || "Standard");
+      const tier = calculateCardPrice(product, size, (i.style as CardStyle) || "Standard");
       if (tier.soldOut) {
         return NextResponse.json(
           { error: `The ${size} shield size is currently sold out. Please remove it or select Small or Medium.` },
@@ -56,6 +60,21 @@ export async function POST(req: NextRequest) {
     const orderRef = `SAS-${Math.floor(100000 + Math.random() * 900000)}`;
 
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map((i: any) => {
+      const apparel = getApparelProduct(i.productSlug);
+      if (apparel) {
+        return {
+          price_data: {
+            currency: "cad",
+            product_data: {
+              name: `${apparel.name} (Size ${i.size || "M"})`,
+              description: `Help Shiva Go to Italy — March 2027 Fundraiser · Size ${i.size || "M"}`,
+            },
+            unit_amount: Math.round(apparel.price * 100),
+          },
+          quantity: Math.max(1, Number(i.qty) || 1),
+        };
+      }
+
       const product = getProduct(i.productSlug);
       const size = (i.size as CardSize) || "Medium";
       const style = (i.style as CardStyle) || "Standard";

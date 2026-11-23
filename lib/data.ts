@@ -108,3 +108,22 @@ export const CLUBS = [
 export const COUNTRIES = [
   "Canada",
 ];
+
+// --- SHIVA FUNDRAISER APPAREL ---
+export interface ApparelProduct {
+  slug: string;
+  name: string;
+  price: number;
+  kind: "tshirt" | "hoodie";
+}
+
+export const APPAREL_PRODUCTS: ApparelProduct[] = [
+  { slug: "shiva-tshirt", name: "Support Shiva — T-Shirt", price: 35, kind: "tshirt" },
+  { slug: "shiva-hoodie", name: "Support Shiva — Hoodie", price: 60, kind: "hoodie" },
+];
+
+export const APPAREL_SIZES = ["YS", "YM", "YL", "S", "M", "L", "XL", "2XL"] as const;
+
+export function getApparelProduct(slug: string) {
+  return APPAREL_PRODUCTS.find((p) => p.slug === slug);
+}

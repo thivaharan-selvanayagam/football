@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCart } from "@/lib/cart";
 import { formatRs } from "@/lib/format";
 import FutCard from "@/components/FutCard";
-import { calculateCardPrice, CardSize, CardStyle, getProduct } from "@/lib/data";
+import { calculateCardPrice, CardSize, CardStyle, getApparelProduct, getProduct } from "@/lib/data";
 
 const CART_MINI_SHIFTS = {
   meta: 0,
@@ -66,15 +66,29 @@ export default function CartPage() {
           </h1>
           <div className="space-y-6">
             {items.map((item: any) => {
+              const apparel = getApparelProduct(item.productSlug);
               const baseProduct = getProduct(item.productSlug);
-              const tier = calculateCardPrice(
-                baseProduct,
-                (item.size as CardSize) || "Medium",
-                (item.style as CardStyle) || "Standard"
-              );
-              const activeUnitPrice = promoCode ? tier.promoPrice : tier.price;
+              const tier = baseProduct
+                ? calculateCardPrice(
+                    baseProduct,
+                    (item.size as CardSize) || "Medium",
+                    (item.style as CardStyle) || "Standard"
+                  )
+                : null;
+              const activeUnitPrice = apparel
+                ? apparel.price
+                : tier
+                ? promoCode
+                  ? tier.promoPrice
+                  : tier.price
+                : item.unitPrice;
+              const regularUnitPrice = apparel
+                ? apparel.price
+                : tier
+                ? tier.price
+                : item.unitPrice;
               const lineTotal = (activeUnitPrice + (item.addonsPrice || 0)) * item.qty;
-              const regularLineTotal = (tier.price + (item.addonsPrice || 0)) * item.qty;
+              const regularLineTotal = (regularUnitPrice + (item.addonsPrice || 0)) * item.qty;
 
               return (
                 <div
@@ -82,26 +96,37 @@ export default function CartPage() {
                   className="flex gap-5 border border-neutral-200/80 rounded-2xl p-5 bg-white items-center shadow-sm"
                 >
                   <div className="shrink-0">
-                    <FutCard
-                      name={item.name}
-                      position={item.position}
-                      overall={item.overall}
-                      attrs={item.attributes}
-                      gradient={item.gradient}
-                      frameImage={baseProduct?.frameImage}
-                      photo={item.photo || item.fullCardPreview}
-                      clubBadge={item.clubBadge}
-                      countryFlag={item.countryFlag}
-                      textColor={item.textColor || "#3c3f25"}
-                      textShiftY={CART_MINI_SHIFTS}
-                      size={90}
-                    />
+                    {apparel ? (
+                      <div className="w-[90px] h-[110px] rounded-xl bg-neutral-100 border border-neutral-200 flex flex-col items-center justify-center text-neutral-800 p-2 text-center">
+                        <span className="text-3xl mb-1">{apparel.kind === "hoodie" ? "🧥" : "👕"}</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">
+                          {apparel.kind === "hoodie" ? "Hoodie" : "T-Shirt"}
+                        </span>
+                      </div>
+                    ) : (
+                      <FutCard
+                        name={item.name}
+                        position={item.position}
+                        overall={item.overall}
+                        attrs={item.attributes}
+                        gradient={item.gradient}
+                        frameImage={baseProduct?.frameImage}
+                        photo={item.photo || item.fullCardPreview}
+                        clubBadge={item.clubBadge}
+                        countryFlag={item.countryFlag}
+                        textColor={item.textColor || "#3c3f25"}
+                        textShiftY={CART_MINI_SHIFTS}
+                        size={90}
+                      />
+                    )}
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <h3 className="font-display font-bold text-base text-neutral-900">{item.productName}</h3>
                     <p className="text-xs text-neutral-500 mb-2 font-medium">
-                      {item.style} · {item.size} · {item.position} · {item.club} · {item.country}
+                      {apparel
+                        ? `Fundraiser Apparel · Size: ${item.size}`
+                        : `${item.style} · ${item.size} · ${item.position} · ${item.club} · ${item.country}`}
                     </p>
                     {item.addons && item.addons.length > 0 && (
                       <p className="text-xs text-neutral-500 mb-2 font-medium">Add-ons: {item.addons.length}</p>
