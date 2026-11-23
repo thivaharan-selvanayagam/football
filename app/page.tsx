@@ -1,8 +1,8 @@
 import Hero from "@/components/Hero";
 import ProductFeature from "@/components/ProductFeature";
 import HowItWorks from "@/components/HowItWorks";
-import Testimonials from "@/components/Testimonials";
 import WhyChooseUs from "@/components/WhyChooseUs";
+import FaqSection from "@/components/FaqSection";
 
 export default function Home() {
   return (
@@ -10,8 +10,8 @@ export default function Home() {
       <Hero />
       <ProductFeature />
       <HowItWorks />
-      {/* <Testimonials /> */}
       <WhyChooseUs />
+      <FaqSection />
     </div>
   );
 }
