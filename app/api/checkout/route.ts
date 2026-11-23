@@ -9,9 +9,8 @@ import {
   getProduct,
   isValidPromoCode,
   PROMO_CODE,
+  SHIPPING_METHODS,
 } from "@/lib/data";
-
-const SHIPPING_COST_CAD = 10; // $10.00 CAD flat rate
 
 export async function POST(req: NextRequest) {
   try {
@@ -28,7 +27,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { items, customer, promoCode } = body;
+    const { items, customer, promoCode, shippingMethod } = body;
 
     if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: "Your cart is empty." }, { status: 400 });
@@ -134,25 +133,31 @@ export async function POST(req: NextRequest) {
       .join("; ")
       .slice(0, 490);
 
+    const chosenShipping =
+      SHIPPING_METHODS.find((m) => m.id === shippingMethod) || SHIPPING_METHODS[0];
+    const orderedShippingMethods = [
+      chosenShipping,
+      ...SHIPPING_METHODS.filter((m) => m.id !== chosenShipping.id),
+    ];
+
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       customer_email: customer?.email?.trim() || undefined,
       line_items: lineItems,
-      shipping_options: [
-        {
-          shipping_rate_data: {
-            type: "fixed_amount",
-            fixed_amount: {
-              amount: Math.round(SHIPPING_COST_CAD * 100),
-              currency: "cad",
-            },
-            display_name: "Standard Shipping (5–9 working days)",
+      shipping_options: orderedShippingMethods.map((m) => ({
+        shipping_rate_data: {
+          type: "fixed_amount",
+          fixed_amount: {
+            amount: Math.round(m.price * 100),
+            currency: "cad",
           },
+          display_name: m.label,
         },
-      ],
+      })),
       metadata: {
         order_ref: orderRef,
         promo_code: promoApplied ? PROMO_CODE : "",
+        shipping_method: chosenShipping.label,
         customer_name: (customer?.name || "").slice(0, 490),
         customer_email: (customer?.email || "").slice(0, 490),
         customer_phone: (customer?.phone || "").slice(0, 490),

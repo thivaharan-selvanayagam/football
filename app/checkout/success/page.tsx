@@ -84,6 +84,7 @@ function SuccessContent() {
             phone: storedCustomer?.phone || verifyData.customer?.phone || "N/A",
             address: storedCustomer?.address || verifyData.customer?.address || "N/A",
             promoCode: storedCustomer?.promoCode || null,
+            shippingMethod: storedCustomer?.shippingMethod || null,
           };
 
           if (storedItems.length > 0) {

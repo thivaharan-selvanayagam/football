@@ -2,7 +2,15 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart";
-import { calculateCardPrice, CardSize, CardStyle, getApparelProduct, getProduct } from "@/lib/data";
+import {
+  calculateCardPrice,
+  CardSize,
+  CardStyle,
+  getApparelProduct,
+  getProduct,
+  SHIPPING_METHODS,
+  ShippingMethodId,
+} from "@/lib/data";
 import { formatRs } from "@/lib/format";
 
 export default function CheckoutPage() {
@@ -21,6 +29,7 @@ export default function CheckoutPage() {
   const [error, setError] = useState<string | null>(null);
   const [codeInput, setCodeInput] = useState("");
   const [promoError, setPromoError] = useState<string | null>(null);
+  const [shippingMethod, setShippingMethod] = useState<ShippingMethodId>("gta-free");
   const [form, setForm] = useState({
     email: "",
     phone: "",
@@ -31,7 +40,9 @@ export default function CheckoutPage() {
     postcode: "",
   });
 
-  const shipping = items.length ? 10 : 0;
+  const selectedShipping =
+    SHIPPING_METHODS.find((m) => m.id === shippingMethod) || SHIPPING_METHODS[0];
+  const shipping = items.length ? selectedShipping.price : 0;
   const total = discountedSubtotal + shipping;
 
   const isFormComplete =
@@ -76,6 +87,7 @@ export default function CheckoutPage() {
           phone: form.phone.trim() || "N/A",
           address: fullAddress,
           promoCode: promoCode || null,
+          shippingMethod: `${selectedShipping.label} (${selectedShipping.price === 0 ? "Free" : formatRs(selectedShipping.price)})`,
         })
       );
 
@@ -105,6 +117,7 @@ export default function CheckoutPage() {
           items: checkoutItems,
           customer: form,
           promoCode: promoCode || undefined,
+          shippingMethod,
         }),
       });
       const data = await res.json();
@@ -216,6 +229,47 @@ export default function CheckoutPage() {
           </div>
         </div>
 
+        <div className="bg-white border border-black/5 rounded-xl p-6 mb-6">
+          <h2 className="font-display text-sm text-ink mb-4">Shipping method</h2>
+          <div className="space-y-3">
+            {SHIPPING_METHODS.map((method) => {
+              const isSelected = shippingMethod === method.id;
+              return (
+                <label
+                  key={method.id}
+                  onClick={() => setShippingMethod(method.id)}
+                  className={`flex items-center justify-between gap-4 border rounded-xl px-4 py-3.5 cursor-pointer transition ${
+                    isSelected
+                      ? "border-ink bg-neutral-50"
+                      : "border-black/10 hover:border-black/25 bg-white"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="radio"
+                      name="shippingMethod"
+                      checked={isSelected}
+                      onChange={() => setShippingMethod(method.id)}
+                      className="accent-neutral-900"
+                    />
+                    <div>
+                      <p className="text-sm font-semibold text-ink">{method.label}</p>
+                      <p className="text-xs text-ink/50">{method.sublabel}</p>
+                    </div>
+                  </div>
+                  <span
+                    className={`font-display text-sm ${
+                      method.price === 0 ? "text-emerald font-bold" : "text-ink"
+                    }`}
+                  >
+                    {method.price === 0 ? "Free" : formatRs(method.price)}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        </div>
+
         <div className="bg-white border border-black/5 rounded-xl p-6">
           <h2 className="font-display text-sm text-ink mb-3">Payment</h2>
           <p className="text-xs text-ink/50 mb-4">
@@ -312,8 +366,10 @@ export default function CheckoutPage() {
           </div>
         )}
         <div className="flex justify-between text-sm text-ink/70 mb-4">
-          <span>Shipping</span>
-          <span>{formatRs(shipping)}</span>
+          <span>{selectedShipping.label}</span>
+          <span className={shipping === 0 ? "text-emerald font-bold" : ""}>
+            {shipping === 0 ? "Free" : formatRs(shipping)}
+          </span>
         </div>
         <div className="flex justify-between font-display text-ink text-lg mb-6 border-t border-black/10 pt-4">
           <span>Total (CAD)</span>

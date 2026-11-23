@@ -55,13 +55,41 @@ export const SIZE_PRICING: Record<
 > = {
   Small: { compareAt: 79, price: 45, promoPrice: 39, soldOut: false },
   Medium: { compareAt: 99, price: 64, promoPrice: 49, soldOut: false },
-  Large: { compareAt: 500, price: 400, promoPrice: 300, soldOut: true },
+  Large: { compareAt: 500, price: 400, promoPrice: 300, soldOut: false },
 };
 
-export const SIZES: { id: CardSize; label: string; dim: string; soldOut: boolean }[] = [
+export const SIZES: {
+  id: CardSize;
+  label: string;
+  dim: string;
+  soldOut: boolean;
+  badge?: string;
+}[] = [
   { id: "Small", label: "Small", dim: "(18 in. x 12 in.)", soldOut: false },
-  { id: "Medium", label: "Medium", dim: "(24 in. x 18 in.)", soldOut: false },
-  { id: "Large", label: "Large", dim: "(48 in. x 24 in.)", soldOut: true },
+  { id: "Medium", label: "Medium", dim: "(24 in. x 18 in.)", soldOut: false, badge: "Most Popular" },
+  { id: "Large", label: "Large", dim: "(48 in. x 24 in.)", soldOut: false, badge: "Life Size" },
+];
+
+export type ShippingMethodId = "gta-free" | "canada-standard";
+
+export const SHIPPING_METHODS: {
+  id: ShippingMethodId;
+  label: string;
+  sublabel: string;
+  price: number;
+}[] = [
+  {
+    id: "gta-free",
+    label: "Standard Shipping (GTA)",
+    sublabel: "Greater Toronto Area · 5–9 working days",
+    price: 0,
+  },
+  {
+    id: "canada-standard",
+    label: "Standard Shipping (Outside GTA)",
+    sublabel: "Canadawide · 5–9 working days",
+    price: 10,
+  },
 ];
 
 export const STYLE_DELTA: Record<CardStyle, number> = {

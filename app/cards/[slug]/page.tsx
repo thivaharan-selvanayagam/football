@@ -263,16 +263,19 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
                         : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300"
                     }`}
                   >
-                    {isSoldOut && (
+                    {isSoldOut ? (
                       <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-red-600 text-[9px] text-white px-2 py-0.5 rounded-full whitespace-nowrap font-bold">
                         Sold Out
                       </span>
-                    )}
-                    {s.id === "Medium" && !isSoldOut && (
-                      <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-amber-500 text-[9px] text-white px-2 py-0.5 rounded-full whitespace-nowrap font-bold">
-                        Most Popular
+                    ) : s.badge ? (
+                      <span
+                        className={`absolute -top-2.5 left-1/2 -translate-x-1/2 text-[9px] text-white px-2.5 py-0.5 rounded-full whitespace-nowrap font-bold shadow-sm ${
+                          s.id === "Large" ? "bg-emerald-600" : "bg-amber-500"
+                        }`}
+                      >
+                        {s.badge}
                       </span>
-                    )}
+                    ) : null}
                     <div>{s.label}</div>
                     <div className="text-[11px] text-neutral-500">{s.dim}</div>
                     <div className="mt-1 text-xs font-bold text-neutral-900">
