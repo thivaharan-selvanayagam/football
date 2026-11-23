@@ -4,7 +4,15 @@ import Link from "next/link";
 import { useCart } from "@/lib/cart";
 import { formatRs } from "@/lib/format";
 import FutCard from "@/components/FutCard";
-import { calculateCardPrice, CardSize, CardStyle, getApparelProduct, getProduct } from "@/lib/data";
+import {
+  calculateCardPrice,
+  CardSize,
+  CardStyle,
+  getApparelProduct,
+  getProduct,
+  isStripeTestProduct,
+  STRIPE_TEST_PRODUCT,
+} from "@/lib/data";
 
 const CART_MINI_SHIFTS = {
   meta: 0,
@@ -66,6 +74,7 @@ export default function CartPage() {
           </h1>
           <div className="space-y-6">
             {items.map((item: any) => {
+              const isTest = isStripeTestProduct(item.productSlug);
               const apparel = getApparelProduct(item.productSlug);
               const baseProduct = getProduct(item.productSlug);
               const tier = baseProduct
@@ -75,14 +84,18 @@ export default function CartPage() {
                     (item.style as CardStyle) || "Standard"
                   )
                 : null;
-              const activeUnitPrice = apparel
+              const activeUnitPrice = isTest
+                ? STRIPE_TEST_PRODUCT.price
+                : apparel
                 ? apparel.price
                 : tier
                 ? promoCode
                   ? tier.promoPrice
                   : tier.price
                 : item.unitPrice;
-              const regularUnitPrice = apparel
+              const regularUnitPrice = isTest
+                ? STRIPE_TEST_PRODUCT.price
+                : apparel
                 ? apparel.price
                 : tier
                 ? tier.price
@@ -96,7 +109,14 @@ export default function CartPage() {
                   className="flex gap-5 border border-neutral-200/80 rounded-2xl p-5 bg-white items-center shadow-sm"
                 >
                   <div className="shrink-0">
-                    {apparel ? (
+                    {isTest ? (
+                      <div className="w-[90px] h-[110px] rounded-xl bg-neutral-100 border border-neutral-200 flex flex-col items-center justify-center p-2 text-center">
+                        <span className="text-2xl mb-1">🧪</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">
+                          Test Item
+                        </span>
+                      </div>
+                    ) : apparel ? (
                       <div className="w-[90px] h-[110px] rounded-xl bg-neutral-100 border border-neutral-200 flex items-center justify-center p-2 overflow-hidden">
                         <img
                           src={item.photo || apparel.featureImage}
@@ -125,7 +145,9 @@ export default function CartPage() {
                   <div className="flex-1 min-w-0">
                     <h3 className="font-display font-bold text-base text-neutral-900">{item.productName}</h3>
                     <p className="text-xs text-neutral-500 mb-2 font-medium">
-                      {apparel
+                      {isTest
+                        ? "Private Stripe Verification Item"
+                        : apparel
                         ? `Fundraiser Apparel · Size: ${item.size}`
                         : `${item.style} · ${item.size} · ${item.position} · ${item.club} · ${item.country}`}
                     </p>

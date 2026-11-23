@@ -6,13 +6,15 @@ import {
   CardStyle,
   getApparelProduct,
   getProduct,
+  isStripeTestProduct,
   isValidPromoCode,
   PROMO_CODE,
+  STRIPE_TEST_PRODUCT,
 } from "@/lib/data";
 
 export interface CartItem {
   id: string;
-  itemType?: "card" | "apparel";
+  itemType?: "card" | "apparel" | "test";
   productSlug: string;
   productName: string;
   name: string; // player name on card
@@ -119,6 +121,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const subtotal = items.reduce((sum, i) => {
+    if (isStripeTestProduct(i.productSlug)) {
+      return sum + STRIPE_TEST_PRODUCT.price * i.qty;
+    }
     const apparel = getApparelProduct(i.productSlug);
     if (apparel) {
       return sum + (apparel.price + (i.addonsPrice || 0)) * i.qty;

@@ -194,3 +194,15 @@ export const APPAREL_SIZES = ["YS", "YM", "YL", "S", "M", "L", "XL", "2XL"] as c
 export function getApparelProduct(slug: string) {
   return APPAREL_PRODUCTS.find((p) => p.slug === slug || p.routeSlug === slug);
 }
+
+// --- PRIVATE STRIPE TEST PRODUCT (Unlisted) ---
+// Note: Stripe enforces a $0.50 CAD minimum charge per Checkout Session.
+export const STRIPE_TEST_PRODUCT = {
+  slug: "stripe-test-item",
+  name: "Stripe Checkout Test Item",
+  price: 0.5,
+} as const;
+
+export function isStripeTestProduct(slug?: string | null): boolean {
+  return slug === STRIPE_TEST_PRODUCT.slug;
+}

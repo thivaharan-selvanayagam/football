@@ -7,9 +7,11 @@ import {
   CardStyle,
   getApparelProduct,
   getProduct,
+  isStripeTestProduct,
   isValidPromoCode,
   PROMO_CODE,
   SHIPPING_METHODS,
+  STRIPE_TEST_PRODUCT,
 } from "@/lib/data";
 
 export async function POST(req: NextRequest) {
@@ -59,6 +61,20 @@ export async function POST(req: NextRequest) {
     const orderRef = `SAS-${Math.floor(100000 + Math.random() * 900000)}`;
 
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map((i: any) => {
+      if (isStripeTestProduct(i.productSlug)) {
+        return {
+          price_data: {
+            currency: "cad",
+            product_data: {
+              name: STRIPE_TEST_PRODUCT.name,
+              description: "Private Stripe live/test verification item",
+            },
+            unit_amount: Math.round(STRIPE_TEST_PRODUCT.price * 100),
+          },
+          quantity: Math.max(1, Number(i.qty) || 1),
+        };
+      }
+
       const apparel = getApparelProduct(i.productSlug);
       if (apparel) {
         return {

@@ -8,8 +8,10 @@ import {
   CardStyle,
   getApparelProduct,
   getProduct,
+  isStripeTestProduct,
   SHIPPING_METHODS,
   ShippingMethodId,
+  STRIPE_TEST_PRODUCT,
 } from "@/lib/data";
 import { formatRs } from "@/lib/format";
 
@@ -288,6 +290,7 @@ export default function CheckoutPage() {
         <h2 className="font-display text-lg text-ink mb-4">Order summary</h2>
         <div className="space-y-2 mb-4 max-h-64 overflow-auto pr-1">
           {items.map((i) => {
+            const isTest = isStripeTestProduct(i.productSlug);
             const apparel = getApparelProduct(i.productSlug);
             const product = getProduct(i.productSlug);
             const tier = product
@@ -297,7 +300,9 @@ export default function CheckoutPage() {
                   (i.style as CardStyle) || "Standard"
                 )
               : null;
-            const unit = apparel
+            const unit = isTest
+              ? STRIPE_TEST_PRODUCT.price
+              : apparel
               ? apparel.price
               : tier
               ? promoCode
@@ -307,7 +312,9 @@ export default function CheckoutPage() {
             return (
               <div key={i.id} className="flex justify-between text-sm text-ink/70">
                 <span className="truncate pr-2">
-                  {apparel
+                  {isTest
+                    ? `${i.productName} × ${i.qty}`
+                    : apparel
                     ? `${i.productName} (Size ${i.size}) × ${i.qty}`
                     : `${i.productName} (${i.name} · ${i.size}) × ${i.qty}`}
                 </span>

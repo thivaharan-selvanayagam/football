@@ -83,6 +83,17 @@ export async function POST(req: Request) {
         }
       }
 
+      if (item.itemType === "test" || item.productSlug === "stripe-test-item") {
+        itemsHtml += `
+          <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 20px; background: #fff;">
+            <h3 style="margin-top: 0; color: #1e293b;">Item #${index + 1}: ${item.productName || "Stripe Test Item"} (Qty: ${item.qty || 1})</h3>
+            <p><strong>Category:</strong> Private Stripe Checkout Verification</p>
+            <p><strong>Unit Price:</strong> $${Number(item.unitPrice ?? 0.5).toFixed(2)} CAD</p>
+          </div>
+        `;
+        return;
+      }
+
       const isApparel =
         item.itemType === "apparel" ||
         (typeof item.productSlug === "string" && item.productSlug.startsWith("shiva-"));
