@@ -97,11 +97,12 @@ export default function CartPage() {
                 >
                   <div className="shrink-0">
                     {apparel ? (
-                      <div className="w-[90px] h-[110px] rounded-xl bg-neutral-100 border border-neutral-200 flex flex-col items-center justify-center text-neutral-800 p-2 text-center">
-                        <span className="text-3xl mb-1">{apparel.kind === "hoodie" ? "🧥" : "👕"}</span>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">
-                          {apparel.kind === "hoodie" ? "Hoodie" : "T-Shirt"}
-                        </span>
+                      <div className="w-[90px] h-[110px] rounded-xl bg-neutral-100 border border-neutral-200 flex items-center justify-center p-2 overflow-hidden">
+                        <img
+                          src={item.photo || apparel.featureImage}
+                          alt={apparel.title}
+                          className="w-full h-full object-contain"
+                        />
                       </div>
                     ) : (
                       <FutCard

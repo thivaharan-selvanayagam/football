@@ -111,19 +111,58 @@ export const COUNTRIES = [
 
 // --- SHIVA FUNDRAISER APPAREL ---
 export interface ApparelProduct {
-  slug: string;
+  slug: "shiva-tshirt" | "shiva-hoodie";
+  routeSlug: "tshirt" | "hoodie";
   name: string;
+  title: string;
+  badge: string;
   price: number;
   kind: "tshirt" | "hoodie";
+  folder: string; // relative to /public
+  featureImage: string;
+  shortDesc: string;
+  description: string[];
 }
 
 export const APPAREL_PRODUCTS: ApparelProduct[] = [
-  { slug: "shiva-tshirt", name: "Support Shiva — T-Shirt", price: 35, kind: "tshirt" },
-  { slug: "shiva-hoodie", name: "Support Shiva — Hoodie", price: 60, kind: "hoodie" },
+  {
+    slug: "shiva-tshirt",
+    routeSlug: "tshirt",
+    name: "Support Shiva — T-Shirt",
+    title: "Supporter T-Shirt",
+    badge: "Supporter Apparel",
+    price: 35,
+    kind: "tshirt",
+    folder: "images/sas-cloting/sas-tshirt",
+    featureImage: "/images/sas-cloting/sas-tshirt/1.png",
+    shortDesc:
+      "Comfortable everyday supporter tee - 100% of proceeds help fund Shiva's March 2027 trip to Italy.",
+    description: [
+      "Show your support for Shiva as he prepares to travel to Italy with his soccer team in March 2027. Every T-shirt purchased directly contributes toward his tournament and travel expenses.",
+      "Crafted from soft, breathable cotton with a clean athletic fit that feels great on the pitch, in the stands, or for everyday wear.",
+    ],
+  },
+  {
+    slug: "shiva-hoodie",
+    routeSlug: "hoodie",
+    name: "Support Shiva — Hoodie",
+    title: "Supporter Hoodie",
+    badge: "Premium Fleece",
+    price: 60,
+    kind: "hoodie",
+    folder: "images/sas-cloting/sas-hoodie",
+    featureImage: "/images/sas-cloting/sas-hoodie/1.png",
+    shortDesc:
+      "Warm, heavyweight sideline hoodie - support Shiva's journey to Italy in style on and off the pitch.",
+    description: [
+      "Stay warm on chilly matchdays while backing Shiva's March 2027 team trip to Italy. Every hoodie sold directly supports his soccer journey.",
+      "Made with plush, durable fleece featuring a cozy lined hood, ribbed cuffs, and a relaxed everyday fit built to last season after season.",
+    ],
+  },
 ];
 
 export const APPAREL_SIZES = ["YS", "YM", "YL", "S", "M", "L", "XL", "2XL"] as const;
 
 export function getApparelProduct(slug: string) {
-  return APPAREL_PRODUCTS.find((p) => p.slug === slug);
+  return APPAREL_PRODUCTS.find((p) => p.slug === slug || p.routeSlug === slug);
 }
