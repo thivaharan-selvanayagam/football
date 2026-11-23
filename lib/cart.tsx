@@ -18,10 +18,17 @@ export interface CartItem {
   addonsPrice: number;
   qty: number;
   gradient: [string, string];
+  textColor?: string;
+  rawOriginalPhoto?: string | null;
+  photo?: string | null;
+  clubBadge?: string | null;
+  countryFlag?: string | null;
+  fullCardPreview?: string | null;
 }
 
 interface CartContextValue {
   items: CartItem[];
+  hydrated: boolean;
   addItem: (item: CartItem) => void;
   removeItem: (id: string) => void;
   updateQty: (id: string, qty: number) => void;
@@ -60,7 +67,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const count = items.reduce((sum, i) => sum + i.qty, 0);
 
   return (
-    <CartContext.Provider value={{ items, addItem, removeItem, updateQty, clear, subtotal, count }}>
+    <CartContext.Provider value={{ items, hydrated, addItem, removeItem, updateQty, clear, subtotal, count }}>
       {children}
     </CartContext.Provider>
   );

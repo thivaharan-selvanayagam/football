@@ -84,14 +84,16 @@ export async function POST(req: Request) {
       }
 
       const attrs = item.attributes || item.attrs || {};
+      const addonList = Array.isArray(item.addons) && item.addons.length > 0 ? item.addons.join(", ") : "None";
 
       itemsHtml += `
         <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 20px; background: #fff;">
-          <h3 style="margin-top: 0; color: #1e293b;">Item #${index + 1}: ${item.productName || item.productSlug || "Custom Card"}</h3>
+          <h3 style="margin-top: 0; color: #1e293b;">Item #${index + 1}: ${item.productName || item.productSlug || "Custom Card"} (Qty: ${item.qty || 1})</h3>
           <p><strong>Player Name:</strong> ${item.name || "N/A"}</p>
           <p><strong>Position & Rating:</strong> ${item.position || "N/A"} (${item.overall || "N/A"})</p>
           <p><strong>Style / Size:</strong> ${item.style || "Standard"} / ${item.size || "Medium"}</p>
           <p><strong>Club / Country:</strong> ${item.club || "N/A"} / ${item.country || "N/A"}</p>
+          <p><strong>Add-ons:</strong> ${addonList}</p>
           <p><strong>Font Color:</strong> <span style="display:inline-block; width:12px; height:12px; background:${item.textColor || "#3c3f25"}; border-radius:50%; margin-right:4px;"></span>${item.textColor || "#3c3f25"}</p>
           <p><strong>Stats:</strong> PAC: ${attrs.PAC ?? "N/A"} | SHO: ${attrs.SHO ?? "N/A"} | PAS: ${attrs.PAS ?? "N/A"} | DRI: ${attrs.DRI ?? "N/A"} | DEF: ${attrs.DEF ?? "N/A"} | PHY: ${attrs.PHY ?? "N/A"}</p>
           
@@ -119,14 +121,24 @@ export async function POST(req: Request) {
       `;
     });
 
+    const orderRef = body.orderRef || "N/A";
+    const stripeSessionId = body.stripeSessionId || null;
+    const totalPaid =
+      typeof body.totalPaid === "number"
+        ? `$${body.totalPaid.toFixed(2)} ${body.currency || "CAD"}`
+        : null;
+
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 650px; margin: 0 auto; color: #111; background: #f8fafc; padding: 20px; border-radius: 12px;">
         <h2 style="background: #2a2a2a; color: #fff; padding: 16px; text-align: center; border-radius: 8px; margin-top: 0;">
-          🚀 New Custom Card Order Received!
+          🚀 New Paid Custom Card Order (${orderRef})
         </h2>
 
         <div style="background: #fff; padding: 18px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
-          <h3 style="margin-top: 0; color: #0f172a; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px;">📋 Customer Checkout Details</h3>
+          <h3 style="margin-top: 0; color: #0f172a; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px;">💳 Payment &amp; Customer Details</h3>
+          <p style="margin: 6px 0;"><strong>Order Reference:</strong> ${orderRef}</p>
+          ${totalPaid ? `<p style="margin: 6px 0;"><strong>Total Paid (Stripe):</strong> ${totalPaid}</p>` : ""}
+          ${stripeSessionId ? `<p style="margin: 6px 0;"><strong>Stripe Session ID:</strong> ${stripeSessionId}</p>` : ""}
           <p style="margin: 6px 0;"><strong>Customer Name:</strong> ${customerDetails.name}</p>
           <p style="margin: 6px 0;"><strong>Email Address:</strong> ${customerDetails.email}</p>
           <p style="margin: 6px 0;"><strong>Phone Number:</strong> ${customerDetails.phone}</p>
@@ -141,7 +153,7 @@ export async function POST(req: Request) {
     const info = await transporter.sendMail({
       from: `"SAS Sports Orders" <${smtpUser}>`,
       to: "thivaharan@vto.group",
-      subject: `New Order from ${customerDetails.name} (${cartItems.length} Item)`,
+      subject: `Paid Order ${orderRef} from ${customerDetails.name} (${cartItems.length} Item${cartItems.length === 1 ? "" : "s"})`,
       html: htmlContent,
       attachments,
     });
