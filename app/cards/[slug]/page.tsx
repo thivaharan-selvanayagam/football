@@ -313,13 +313,7 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
             📋 Need help? Order via Simple Form
           </button>
 
-          <div className="grid grid-cols-3 gap-4 text-center text-xs font-medium text-neutral-600 border-t border-neutral-200/80 pt-6">
-            <div>📋 Design preview before shipping</div>
-            <div>↻ Free replacements</div>
-            <div>🚚 Fast Canadawide shipping</div>
-          </div>
-
-          <div className="mt-10 border-t border-neutral-200/80 pt-6 text-sm text-neutral-700 leading-relaxed font-medium">
+          <div className="mt-8 border-t border-neutral-200/80 pt-6 text-sm text-neutral-700 leading-relaxed font-medium">
             <h3 className="font-display font-bold text-neutral-900 mb-2">Description</h3>
             <p className="mb-3">
               Celebrate greatness with our {product.name} card — a tribute to football's most legendary names. Built for leaders,
