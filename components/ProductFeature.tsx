@@ -36,17 +36,12 @@ export default function ProductFeature() {
           </div>
 
           {/* Pricing Row Layer Block */}
-          <div className="space-y-2 pt-1">
-            <div className="flex items-center gap-3">
-              <span className="text-3xl font-black text-neutral-900">From $45</span>
-              <span className="text-neutral-400 line-through text-lg font-medium">$79</span>
-              <span className="bg-neutral-100 text-neutral-800 font-bold text-[10px] px-2 py-1 rounded-md border border-neutral-200/80">
-                Save $34.00
-              </span>
-            </div>
-            <p className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 inline-block px-3 py-1 rounded-full">
-              🏷 From $39 with promo code <span className="underline">SAS2027</span>
-            </p>
+          <div className="flex items-center gap-3 pt-1">
+            <span className="text-3xl font-black text-neutral-900">From $45</span>
+            <span className="text-neutral-400 line-through text-lg font-medium">$79</span>
+            <span className="bg-neutral-100 text-neutral-800 font-bold text-[10px] px-2 py-1 rounded-md border border-neutral-200/80">
+              Save $34.00
+            </span>
           </div>
 
           {/* Explanatory Product Copy Description */}

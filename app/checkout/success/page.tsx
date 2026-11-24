@@ -85,6 +85,7 @@ function SuccessContent() {
             address: storedCustomer?.address || verifyData.customer?.address || "N/A",
             promoCode: storedCustomer?.promoCode || null,
             shippingMethod: storedCustomer?.shippingMethod || null,
+            mediaConsent: Boolean(storedCustomer?.mediaConsent),
           };
 
           if (storedItems.length > 0) {

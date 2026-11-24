@@ -17,7 +17,7 @@ export interface CardProduct {
   reviews: number;
 }
 
-export const PROMO_CODE = "SAS2027";
+export const PROMO_CODE = "UMSC";
 
 export function isValidPromoCode(code?: string | null): boolean {
   return Boolean(code && code.trim().toUpperCase() === PROMO_CODE);
@@ -70,7 +70,7 @@ export const SIZES: {
   { id: "Large", label: "Large", dim: "(48 in. x 24 in.)", soldOut: false, badge: "Life Size" },
 ];
 
-export type ShippingMethodId = "gta-free" | "canada-standard";
+export type ShippingMethodId = "gta-free";
 
 export const SHIPPING_METHODS: {
   id: ShippingMethodId;
@@ -83,12 +83,6 @@ export const SHIPPING_METHODS: {
     label: "Standard Shipping (GTA)",
     sublabel: "Greater Toronto Area · 5–9 working days",
     price: 0,
-  },
-  {
-    id: "canada-standard",
-    label: "Standard Shipping (Outside GTA)",
-    sublabel: "Canadawide · 5–9 working days",
-    price: 10,
   },
 ];
 

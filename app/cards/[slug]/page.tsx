@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import Link from "next/link";
 import { notFound, useRouter } from "next/navigation";
 import FutCard from "@/components/FutCard";
-import { getProduct, SIZES, calculateCardPrice, CardStyle, CardSize, PROMO_CODE } from "@/lib/data";
+import { getProduct, SIZES, calculateCardPrice, CardStyle, CardSize } from "@/lib/data";
 import { formatRs } from "@/lib/format";
 import { useCart, CartItem } from "@/lib/cart";
 
@@ -55,7 +55,7 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
 
   if (!product) return notFound();
 
-  const { price, compareAt, promoPrice, soldOut } = calculateCardPrice(product, size, style);
+  const { price, compareAt, soldOut } = calculateCardPrice(product, size, style);
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -217,14 +217,9 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
               </span>
             )}
           </div>
-          <div className="flex flex-wrap items-center gap-2 mb-6 mt-2">
-            <span className="text-emerald-700 bg-emerald-50 border border-emerald-200 text-xs sm:text-sm font-bold px-3 py-1 rounded-full">
-              🏷 {formatRs(promoPrice)} with promo code <span className="underline">{PROMO_CODE}</span>
-            </span>
-            <span className="text-neutral-500 text-xs font-medium">
-              (Save {formatRs(compareAt - promoPrice)} total)
-            </span>
-          </div>
+          <p className="text-emerald-600 text-sm font-bold mb-6">
+            You save {formatRs(compareAt - price)}
+          </p>
 
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs font-medium text-neutral-600 mb-8">
             <span>💎 Incredible print quality</span>

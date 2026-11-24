@@ -10,7 +10,6 @@ import {
   getProduct,
   isStripeTestProduct,
   SHIPPING_METHODS,
-  ShippingMethodId,
   STRIPE_TEST_PRODUCT,
 } from "@/lib/data";
 import { formatRs } from "@/lib/format";
@@ -31,7 +30,7 @@ export default function CheckoutPage() {
   const [error, setError] = useState<string | null>(null);
   const [codeInput, setCodeInput] = useState("");
   const [promoError, setPromoError] = useState<string | null>(null);
-  const [shippingMethod, setShippingMethod] = useState<ShippingMethodId>("gta-free");
+  const [mediaConsent, setMediaConsent] = useState(false);
   const [form, setForm] = useState({
     email: "",
     phone: "",
@@ -42,8 +41,7 @@ export default function CheckoutPage() {
     postcode: "",
   });
 
-  const selectedShipping =
-    SHIPPING_METHODS.find((m) => m.id === shippingMethod) || SHIPPING_METHODS[0];
+  const selectedShipping = SHIPPING_METHODS[0];
   const shipping = items.length ? selectedShipping.price : 0;
   const total = discountedSubtotal + shipping;
 
@@ -54,6 +52,8 @@ export default function CheckoutPage() {
     form.city.trim() !== "" &&
     form.postcode.trim() !== "" &&
     form.country.trim() !== "";
+
+  const canProceed = isFormComplete && mediaConsent;
 
   const handleApplyPromo = (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,6 +69,10 @@ export default function CheckoutPage() {
   const handlePay = async () => {
     if (!isFormComplete) {
       setError("Please fill in your contact email and full shipping address before proceeding.");
+      return;
+    }
+    if (!mediaConsent) {
+      setError("Please tick the mandatory consent box to continue.");
       return;
     }
 
@@ -89,7 +93,8 @@ export default function CheckoutPage() {
           phone: form.phone.trim() || "N/A",
           address: fullAddress,
           promoCode: promoCode || null,
-          shippingMethod: `${selectedShipping.label} (${selectedShipping.price === 0 ? "Free" : formatRs(selectedShipping.price)})`,
+          shippingMethod: `${selectedShipping.label} (Free)`,
+          mediaConsent: true,
         })
       );
 
@@ -119,7 +124,8 @@ export default function CheckoutPage() {
           items: checkoutItems,
           customer: form,
           promoCode: promoCode || undefined,
-          shippingMethod,
+          shippingMethod: selectedShipping.id,
+          mediaConsent: true,
         }),
       });
       const data = await res.json();
@@ -178,14 +184,14 @@ export default function CheckoutPage() {
               placeholder="Email address *"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="w-full border border-black/10 rounded-lg px-4 py-3 text-sm focus-ring"
+              className="w-full border border-black rounded-lg px-4 py-3 text-sm focus-ring"
             />
             <input
               type="tel"
               placeholder="Phone number (optional)"
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              className="w-full border border-black/10 rounded-lg px-4 py-3 text-sm focus-ring"
+              className="w-full border border-black rounded-lg px-4 py-3 text-sm focus-ring"
             />
           </div>
         </div>
@@ -198,78 +204,77 @@ export default function CheckoutPage() {
               placeholder="Full name *"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="border border-black/10 rounded-lg px-4 py-3 text-sm sm:col-span-2 focus-ring"
+              className="border border-black rounded-lg px-4 py-3 text-sm sm:col-span-2 focus-ring"
             />
             <input
               required
               placeholder="Street address *"
               value={form.address}
               onChange={(e) => setForm({ ...form, address: e.target.value })}
-              className="border border-black/10 rounded-lg px-4 py-3 text-sm sm:col-span-2 focus-ring"
+              className="border border-black rounded-lg px-4 py-3 text-sm sm:col-span-2 focus-ring"
             />
             <input
               required
               placeholder="City *"
               value={form.city}
               onChange={(e) => setForm({ ...form, city: e.target.value })}
-              className="border border-black/10 rounded-lg px-4 py-3 text-sm focus-ring"
+              className="border border-black rounded-lg px-4 py-3 text-sm focus-ring"
             />
             <input
               required
               placeholder="Postal code *"
               value={form.postcode}
               onChange={(e) => setForm({ ...form, postcode: e.target.value })}
-              className="border border-black/10 rounded-lg px-4 py-3 text-sm focus-ring"
+              className="border border-black rounded-lg px-4 py-3 text-sm focus-ring"
             />
             <input
               required
               placeholder="Country *"
               value={form.country}
               onChange={(e) => setForm({ ...form, country: e.target.value })}
-              className="border border-black/10 rounded-lg px-4 py-3 text-sm sm:col-span-2 focus-ring"
+              className="border border-black rounded-lg px-4 py-3 text-sm sm:col-span-2 focus-ring"
             />
           </div>
         </div>
 
         <div className="bg-white border border-black/5 rounded-xl p-6 mb-6">
           <h2 className="font-display text-sm text-ink mb-4">Shipping method</h2>
-          <div className="space-y-3">
-            {SHIPPING_METHODS.map((method) => {
-              const isSelected = shippingMethod === method.id;
-              return (
-                <label
-                  key={method.id}
-                  onClick={() => setShippingMethod(method.id)}
-                  className={`flex items-center justify-between gap-4 border rounded-xl px-4 py-3.5 cursor-pointer transition ${
-                    isSelected
-                      ? "border-ink bg-neutral-50"
-                      : "border-black/10 hover:border-black/25 bg-white"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="radio"
-                      name="shippingMethod"
-                      checked={isSelected}
-                      onChange={() => setShippingMethod(method.id)}
-                      className="accent-neutral-900"
-                    />
-                    <div>
-                      <p className="text-sm font-semibold text-ink">{method.label}</p>
-                      <p className="text-xs text-ink/50">{method.sublabel}</p>
-                    </div>
-                  </div>
-                  <span
-                    className={`font-display text-sm ${
-                      method.price === 0 ? "text-emerald font-bold" : "text-ink"
-                    }`}
-                  >
-                    {method.price === 0 ? "Free" : formatRs(method.price)}
-                  </span>
-                </label>
-              );
-            })}
+          <div className="flex items-center justify-between gap-4 border border-ink bg-neutral-50 rounded-xl px-4 py-3.5">
+            <div className="flex items-center gap-3">
+              <input
+                type="radio"
+                name="shippingMethod"
+                checked
+                readOnly
+                className="accent-neutral-900"
+              />
+              <div>
+                <p className="text-sm font-semibold text-ink">{selectedShipping.label}</p>
+                <p className="text-xs text-ink/50">{selectedShipping.sublabel}</p>
+              </div>
+            </div>
+            <span className="font-display text-sm text-emerald font-bold">Free</span>
           </div>
+        </div>
+
+        <div className="bg-white border border-black/5 rounded-xl p-6 mb-6">
+          <h2 className="font-display text-sm text-ink mb-3">Consent *</h2>
+          <label className="flex items-start gap-3 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              required
+              checked={mediaConsent}
+              onChange={(e) => {
+                setMediaConsent(e.target.checked);
+                if (error) setError(null);
+              }}
+              className="mt-1 h-4 w-4 shrink-0 rounded border-black/20 accent-neutral-900 cursor-pointer"
+            />
+            <span className="text-sm text-ink/80 leading-relaxed">
+              I consent to SAS Sports using my child’s photograph and personalized sports card for promotional purposes and sharing it on SAS Sports’ social media platforms.{" "}
+              <span className="text-red-600 font-bold">*</span>
+            </span>
+          </label>
         </div>
 
         <div className="bg-white border border-black/5 rounded-xl p-6">
@@ -349,7 +354,7 @@ export default function CheckoutPage() {
                   setCodeInput(e.target.value);
                   if (promoError) setPromoError(null);
                 }}
-                className="flex-1 border border-black/10 rounded-lg px-3 py-2 text-xs uppercase placeholder:normal-case bg-white focus-ring"
+                className="flex-1 border border-black rounded-lg px-3 py-2 text-xs uppercase placeholder:normal-case bg-white focus-ring"
               />
               <button
                 type="submit"
@@ -374,9 +379,7 @@ export default function CheckoutPage() {
         )}
         <div className="flex justify-between text-sm text-ink/70 mb-4">
           <span>{selectedShipping.label}</span>
-          <span className={shipping === 0 ? "text-emerald font-bold" : ""}>
-            {shipping === 0 ? "Free" : formatRs(shipping)}
-          </span>
+          <span className="text-emerald font-bold">Free</span>
         </div>
         <div className="flex justify-between font-display text-ink text-lg mb-6 border-t border-black/10 pt-4">
           <span>Total (CAD)</span>
@@ -384,7 +387,7 @@ export default function CheckoutPage() {
         </div>
         <button
           onClick={handlePay}
-          disabled={loading || !isFormComplete}
+          disabled={loading || !canProceed}
           className="w-full bg-emerald hover:bg-emerald/90 disabled:opacity-40 transition text-chalk font-display py-3.5 rounded-full text-sm"
         >
           {loading ? "Redirecting to Stripe…" : `Pay ${formatRs(total)}`}

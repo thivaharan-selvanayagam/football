@@ -174,6 +174,7 @@ export async function POST(req: Request) {
           <p style="margin: 6px 0;"><strong>Email Address:</strong> ${customerDetails.email}</p>
           <p style="margin: 6px 0;"><strong>Phone Number:</strong> ${customerDetails.phone}</p>
           <p style="margin: 6px 0;"><strong>Shipping Address:</strong> ${customerDetails.address}</p>
+          <p style="margin: 6px 0;"><strong>Promotional &amp; Social Media Consent:</strong> ${customerDetails.mediaConsent ? "Yes (Accepted)" : "N/A"}</p>
         </div>
 
         <h3 style="color: #0f172a;">🎴 Order Items</h3>

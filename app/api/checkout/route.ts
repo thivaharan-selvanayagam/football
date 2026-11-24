@@ -29,7 +29,14 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { items, customer, promoCode, shippingMethod } = body;
+    const { items, customer, promoCode, shippingMethod, mediaConsent } = body;
+
+    if (!mediaConsent) {
+      return NextResponse.json(
+        { error: "Please accept the promotional & social media consent to continue." },
+        { status: 400 }
+      );
+    }
 
     if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: "Your cart is empty." }, { status: 400 });
@@ -174,6 +181,7 @@ export async function POST(req: NextRequest) {
         order_ref: orderRef,
         promo_code: promoApplied ? PROMO_CODE : "",
         shipping_method: chosenShipping.label,
+        media_consent: "Yes",
         customer_name: (customer?.name || "").slice(0, 490),
         customer_email: (customer?.email || "").slice(0, 490),
         customer_phone: (customer?.phone || "").slice(0, 490),
