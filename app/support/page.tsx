@@ -34,7 +34,7 @@ export default function SupportPage() {
             </div>
             <div>
               <p className="font-display font-bold text-neutral-900 mb-1">Shipping</p>
-              <p className="text-neutral-600">Canadawide shipping, 5-9 working days standard.</p>
+              <p className="text-neutral-600">Free Shipping (GTA)</p>
             </div>
           </div>
         </div>

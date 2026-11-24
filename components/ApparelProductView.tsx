@@ -134,7 +134,7 @@ export default function ApparelProductView({ product, images }: ApparelProductVi
                   Selected: <span className="text-neutral-900">{selectedSize}</span>
                 </span>
               </div>
-              <div className="grid grid-cols-4 gap-2.5">
+              <div className="grid grid-cols-5 gap-2.5">
                 {APPAREL_SIZES.map((sz) => (
                   <button
                     key={sz}
@@ -150,9 +150,6 @@ export default function ApparelProductView({ product, images }: ApparelProductVi
                   </button>
                 ))}
               </div>
-              <p className="text-[11px] text-neutral-400 font-medium mt-2">
-                Youth sizes: YS, YM, YL · Adult sizes: S, M, L, XL, 2XL
-              </p>
             </div>
 
             {/* 2. Quantity Selector */}

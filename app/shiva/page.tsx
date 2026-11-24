@@ -190,13 +190,13 @@ export default function ShivaPage() {
               <div className="pt-4 border-t border-neutral-100">
                 <div className="flex items-baseline justify-between mb-4">
                   <span className="text-xs font-bold uppercase text-neutral-400">Price</span>
-                  <span className="font-display text-2xl font-black text-neutral-900">{formatRs(60)}</span>
+                  <span className="font-display text-2xl font-black text-neutral-900">{formatRs(65)}</span>
                 </div>
                 <Link
                   href="/shiva/hoodie"
                   className="block w-full text-center bg-[#232323] hover:bg-black text-white font-display font-bold py-3.5 rounded-full text-sm transition shadow-md"
                 >
-                  Buy Hoodie — $60
+                  Buy Hoodie — $65
                 </Link>
               </div>
             </div>

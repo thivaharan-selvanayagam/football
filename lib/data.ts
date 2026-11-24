@@ -172,7 +172,7 @@ export const APPAREL_PRODUCTS: ApparelProduct[] = [
     name: "Support Shiva — Hoodie",
     title: "Supporter Hoodie",
     badge: "Premium Fleece",
-    price: 60,
+    price: 65,
     kind: "hoodie",
     folder: "images/sas-cloting/sas-hoodie",
     featureImage: "/images/sas-cloting/sas-hoodie/1.png",
@@ -185,7 +185,7 @@ export const APPAREL_PRODUCTS: ApparelProduct[] = [
   },
 ];
 
-export const APPAREL_SIZES = ["YS", "YM", "YL", "S", "M", "L", "XL", "2XL"] as const;
+export const APPAREL_SIZES = ["S", "M", "L", "XL", "2XL"] as const;
 
 export function getApparelProduct(slug: string) {
   return APPAREL_PRODUCTS.find((p) => p.slug === slug || p.routeSlug === slug);
