@@ -80,7 +80,7 @@ export default function CartPage() {
               const tier = baseProduct
                 ? calculateCardPrice(
                     baseProduct,
-                    (item.size as CardSize) || "Medium",
+                    (item.size as CardSize) || "Large",
                     (item.style as CardStyle) || "Standard"
                   )
                 : null;

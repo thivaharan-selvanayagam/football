@@ -1,16 +1,16 @@
 // lib/data.ts
 
 export type CardStyle = "Standard" | "Metal";
-export type CardSize = "Small" | "Medium" | "Large";
+export type CardSize = "Medium" | "Large" | "Extra Large";
 
 export interface CardProduct {
   slug: string;
   name: string;
   collection: string;
   bestSeller?: boolean;
-  basePrice: number; // starting offer price (Small)
-  compareAtPrice: number; // starting original price (Small)
-  promoPrice: number; // starting promo price (Small)
+  basePrice: number; // starting offer price (Medium)
+  compareAtPrice: number; // starting original price (Medium)
+  promoPrice: number; // starting promo price (Medium)
   gradient: [string, string];
   frameImage: string;
   rating: number;
@@ -53,9 +53,9 @@ export const SIZE_PRICING: Record<
   CardSize,
   { compareAt: number; price: number; promoPrice: number; soldOut: boolean }
 > = {
-  Small: { compareAt: 79, price: 45, promoPrice: 39, soldOut: false },
-  Medium: { compareAt: 99, price: 64, promoPrice: 49, soldOut: false },
-  Large: { compareAt: 500, price: 400, promoPrice: 300, soldOut: false },
+  Medium: { compareAt: 79, price: 45, promoPrice: 39, soldOut: false },
+  Large: { compareAt: 99, price: 64, promoPrice: 49, soldOut: false },
+  "Extra Large": { compareAt: 500, price: 400, promoPrice: 300, soldOut: false },
 };
 
 export const SIZES: {
@@ -65,9 +65,9 @@ export const SIZES: {
   soldOut: boolean;
   badge?: string;
 }[] = [
-  { id: "Small", label: "Small", dim: "(18 in. x 12 in.)", soldOut: false },
-  { id: "Medium", label: "Medium", dim: "(24 in. x 18 in.)", soldOut: false, badge: "Most Popular" },
-  { id: "Large", label: "Large", dim: "(48 in. x 24 in.)", soldOut: false, badge: "Life Size" },
+  { id: "Medium", label: "Medium", dim: "(18 in. x 12 in.)", soldOut: false },
+  { id: "Large", label: "Large", dim: "(24 in. x 18 in.)", soldOut: false, badge: "Most Popular" },
+  { id: "Extra Large", label: "Extra Large", dim: "(48 in. x 24 in.)", soldOut: false, badge: "Life Size" },
 ];
 
 export type ShippingMethodId = "gta-free";
@@ -97,7 +97,9 @@ export function calculateCardPrice(
   style: CardStyle = "Standard"
 ): { price: number; compareAt: number; promoPrice: number; soldOut: boolean } {
   const styleExtra = STYLE_DELTA[style] ?? 0;
-  const tier = SIZE_PRICING[size] ?? SIZE_PRICING.Medium;
+  const normalizedSize: CardSize =
+    (size as string) === "Small" ? "Medium" : SIZE_PRICING[size] ? size : "Large";
+  const tier = SIZE_PRICING[normalizedSize];
 
   return {
     price: tier.price + styleExtra,

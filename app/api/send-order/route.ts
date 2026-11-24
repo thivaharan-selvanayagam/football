@@ -118,7 +118,7 @@ export async function POST(req: Request) {
           <h3 style="margin-top: 0; color: #1e293b;">Item #${index + 1}: ${item.productName || item.productSlug || "Custom Card"} (Qty: ${item.qty || 1})</h3>
           <p><strong>Player Name:</strong> ${item.name || "N/A"}</p>
           <p><strong>Position & Rating:</strong> ${item.position || "N/A"} (${item.overall || "N/A"})</p>
-          <p><strong>Style / Size:</strong> ${item.style || "Standard"} / ${item.size || "Medium"}</p>
+          <p><strong>Style / Size:</strong> ${item.style || "Standard"} / ${item.size || "Large"}</p>
           <p><strong>Club / Country:</strong> ${item.club || "N/A"} / ${item.country || "N/A"}</p>
           <p><strong>Add-ons:</strong> ${addonList}</p>
           <p><strong>Font Color:</strong> <span style="display:inline-block; width:12px; height:12px; background:${item.textColor || "#3c3f25"}; border-radius:50%; margin-right:4px;"></span>${item.textColor || "#3c3f25"}</p>

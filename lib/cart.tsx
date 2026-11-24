@@ -132,7 +132,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (product) {
       const tier = calculateCardPrice(
         product,
-        (i.size as CardSize) || "Medium",
+        (i.size as CardSize) || "Large",
         (i.style as CardStyle) || "Standard"
       );
       return sum + (tier.price + (i.addonsPrice || 0)) * i.qty;
@@ -146,7 +146,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         if (!product) return sum;
         const tier = calculateCardPrice(
           product,
-          (i.size as CardSize) || "Medium",
+          (i.size as CardSize) || "Large",
           (i.style as CardStyle) || "Standard"
         );
         const perUnitSaving = Math.max(0, tier.price - tier.promoPrice);

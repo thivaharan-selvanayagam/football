@@ -301,7 +301,7 @@ export default function CheckoutPage() {
             const tier = product
               ? calculateCardPrice(
                   product,
-                  (i.size as CardSize) || "Medium",
+                  (i.size as CardSize) || "Large",
                   (i.style as CardStyle) || "Standard"
                 )
               : null;

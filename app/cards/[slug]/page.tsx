@@ -26,7 +26,7 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
   const { addItem } = useCart();
 
   const [style, setStyle] = useState<CardStyle>("Standard");
-  const [size, setSize] = useState<CardSize>("Medium");
+  const [size, setSize] = useState<CardSize>("Large");
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -265,7 +265,7 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
                     ) : s.badge ? (
                       <span
                         className={`absolute -top-2.5 left-1/2 -translate-x-1/2 text-[9px] text-white px-2.5 py-0.5 rounded-full whitespace-nowrap font-bold shadow-sm ${
-                          s.id === "Large" ? "bg-emerald-600" : "bg-amber-500"
+                          s.id === "Extra Large" ? "bg-emerald-600" : "bg-amber-500"
                         }`}
                       >
                         {s.badge}
@@ -290,7 +290,9 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
             disabled={soldOut}
             onClick={() => {
               if (!soldOut) {
-                router.push(`/cards/${product.slug}/customize?style=${style}&size=${size}`);
+                router.push(
+                  `/cards/${product.slug}/customize?style=${encodeURIComponent(style)}&size=${encodeURIComponent(size)}`
+                );
               }
             }}
             className="w-full bg-[#232323] hover:bg-black disabled:opacity-40 disabled:cursor-not-allowed transition text-white font-display font-bold py-4 rounded-full flex items-center justify-center gap-2 text-sm tracking-wide mb-3 shadow-md"

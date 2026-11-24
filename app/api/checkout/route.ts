@@ -49,11 +49,11 @@ export async function POST(req: NextRequest) {
       if (getApparelProduct(i.productSlug)) continue;
       const product = getProduct(i.productSlug);
       if (!product) continue;
-      const size = (i.size as CardSize) || "Medium";
+      const size = (i.size as CardSize) || "Large";
       const tier = calculateCardPrice(product, size, (i.style as CardStyle) || "Standard");
       if (tier.soldOut) {
         return NextResponse.json(
-          { error: `The ${size} shield size is currently sold out. Please remove it or select Small or Medium.` },
+          { error: `The ${size} shield size is currently sold out.` },
           { status: 400 }
         );
       }
@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
       }
 
       const product = getProduct(i.productSlug);
-      const size = (i.size as CardSize) || "Medium";
+      const size = (i.size as CardSize) || "Large";
       const style = (i.style as CardStyle) || "Standard";
       const tier = calculateCardPrice(product, size, style);
 
