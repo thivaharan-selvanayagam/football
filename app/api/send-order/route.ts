@@ -25,15 +25,14 @@ export async function POST(req: Request) {
       address: body.customerAddress || body.address || "N/A",
     };
 
-    const cartItems = Array.isArray(body.cartItems) && body.cartItems.length > 0
-      ? body.cartItems
-      : [body];
+    const cartItems =
+      Array.isArray(body.cartItems) && body.cartItems.length > 0 ? body.cartItems : [body];
 
-    // Transporter configured with Port 587 TLS for maximum cloud hosting compatibility
+    const port = Number(process.env.SMTP_PORT) || 587;
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || "smtp.gmail.com",
-      port: Number(process.env.SMTP_PORT) || 587,
-      secure: false, // port 587 requires secure: false
+      port,
+      secure: port === 465,
       auth: {
         user: smtpUser,
         pass: smtpPass,
@@ -45,8 +44,23 @@ export async function POST(req: Request) {
 
     const attachments: any[] = [];
     let itemsHtml = "";
+    let customerItemsSummaryHtml = "";
 
     cartItems.forEach((item: any, index: number) => {
+      const qty = item.qty || 1;
+      const title = item.productName || item.productSlug || "Order Item";
+
+      customerItemsSummaryHtml += `
+        <tr>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f1f5f9; font-size: 14px; color: #1e293b;">
+            <strong>${title}</strong>${item.size && item.size !== "Test" ? ` (${item.size})` : ""}${item.name && item.itemType !== "apparel" && item.itemType !== "test" ? ` — ${item.name}` : ""}
+          </td>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f1f5f9; font-size: 14px; color: #475569; text-align: right;">
+            × ${qty}
+          </td>
+        </tr>
+      `;
+
       const origCid = `origPhoto_${index}`;
       const cardCid = `cardPreview_${index}`;
 
@@ -86,9 +100,19 @@ export async function POST(req: Request) {
       if (item.itemType === "test" || item.productSlug === "stripe-test-item") {
         itemsHtml += `
           <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 20px; background: #fff;">
-            <h3 style="margin-top: 0; color: #1e293b;">Item #${index + 1}: ${item.productName || "Stripe Test Item"} (Qty: ${item.qty || 1})</h3>
+            <h3 style="margin-top: 0; color: #1e293b;">Item #${index + 1}: ${item.productName || "Stripe Test Item"} (Qty: ${qty})</h3>
             <p><strong>Category:</strong> Private Stripe Checkout Verification</p>
             <p><strong>Unit Price:</strong> $${Number(item.unitPrice ?? 0.5).toFixed(2)} CAD</p>
+          </div>
+        `;
+        return;
+      }
+
+      if (item.itemType === "stripe-fallback") {
+        itemsHtml += `
+          <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 20px; background: #fff;">
+            <h3 style="margin-top: 0; color: #1e293b;">Item #${index + 1}: ${title} (Qty: ${qty})</h3>
+            ${item.description ? `<p><strong>Details:</strong> ${item.description}</p>` : ""}
           </div>
         `;
         return;
@@ -101,7 +125,7 @@ export async function POST(req: Request) {
       if (isApparel) {
         itemsHtml += `
           <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 20px; background: #fff;">
-            <h3 style="margin-top: 0; color: #1e293b;">Item #${index + 1}: ${item.productName || "Fundraiser Apparel"} (Qty: ${item.qty || 1})</h3>
+            <h3 style="margin-top: 0; color: #1e293b;">Item #${index + 1}: ${item.productName || "Fundraiser Apparel"} (Qty: ${qty})</h3>
             <p><strong>Category:</strong> Shiva Italy 2027 Fundraiser Clothing</p>
             <p><strong>Selected Size:</strong> ${item.size || "M"}</p>
             <p><strong>Unit Price:</strong> $${item.unitPrice ?? "N/A"}.00 CAD</p>
@@ -111,13 +135,14 @@ export async function POST(req: Request) {
       }
 
       const attrs = item.attributes || item.attrs || {};
-      const addonList = Array.isArray(item.addons) && item.addons.length > 0 ? item.addons.join(", ") : "None";
+      const addonList =
+        Array.isArray(item.addons) && item.addons.length > 0 ? item.addons.join(", ") : "None";
 
       itemsHtml += `
         <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 20px; background: #fff;">
-          <h3 style="margin-top: 0; color: #1e293b;">Item #${index + 1}: ${item.productName || item.productSlug || "Custom Card"} (Qty: ${item.qty || 1})</h3>
+          <h3 style="margin-top: 0; color: #1e293b;">Item #${index + 1}: ${title} (Qty: ${qty})</h3>
           <p><strong>Player Name:</strong> ${item.name || "N/A"}</p>
-          <p><strong>Position & Rating:</strong> ${item.position || "N/A"} (${item.overall || "N/A"})</p>
+          <p><strong>Position &amp; Rating:</strong> ${item.position || "N/A"} (${item.overall || "N/A"})</p>
           <p><strong>Style / Size:</strong> ${item.style || "Standard"} / ${item.size || "Large"}</p>
           <p><strong>Club / Country:</strong> ${item.club || "N/A"} / ${item.country || "N/A"}</p>
           <p><strong>Add-ons:</strong> ${addonList}</p>
@@ -157,10 +182,10 @@ export async function POST(req: Request) {
         ? `$${body.totalPaid.toFixed(2)} ${body.currency || "CAD"}`
         : null;
 
-    const htmlContent = `
+    const adminHtmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 650px; margin: 0 auto; color: #111; background: #f8fafc; padding: 20px; border-radius: 12px;">
         <h2 style="background: #2a2a2a; color: #fff; padding: 16px; text-align: center; border-radius: 8px; margin-top: 0;">
-          🚀 New Paid Custom Card Order (${orderRef})
+          🚀 New Paid Order Received (${orderRef})
         </h2>
 
         <div style="background: #fff; padding: 18px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
@@ -182,13 +207,70 @@ export async function POST(req: Request) {
       </div>
     `;
 
+    const primaryStoreEmail =
+      process.env.ORDER_EMAIL?.trim() ||
+      process.env.actual_email?.trim() ||
+      "hisassports@gmail.com";
+
+    const adminRecipients = Array.from(
+      new Set([primaryStoreEmail, "thivaharan@vto.group"].filter(Boolean))
+    );
+
+    const validCustomerEmail =
+      typeof customerDetails.email === "string" && customerDetails.email.includes("@")
+        ? customerDetails.email.trim()
+        : undefined;
+
+    // 1. Send Admin Fulfillment Email to SAS Sports
     const info = await transporter.sendMail({
       from: `"SAS Sports Orders" <${smtpUser}>`,
-      to: "thivaharan@vto.group",
+      to: adminRecipients.join(", "),
+      replyTo: validCustomerEmail,
       subject: `Paid Order ${orderRef} from ${customerDetails.name} (${cartItems.length} Item${cartItems.length === 1 ? "" : "s"})`,
-      html: htmlContent,
+      html: adminHtmlContent,
       attachments,
     });
+
+    // 2. Send Order Confirmation Receipt Email to the Customer
+    if (validCustomerEmail) {
+      try {
+        const customerHtml = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #111; background: #f8fafc; padding: 24px; border-radius: 12px;">
+            <h2 style="background: #232323; color: #fff; padding: 16px; text-align: center; border-radius: 8px; margin-top: 0;">
+              Order Confirmed — SAS Sports
+            </h2>
+            <div style="background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0;">
+              <p style="margin-top: 0;">Hi <strong>${customerDetails.name}</strong>,</p>
+              <p style="color: #475569; line-height: 1.6;">
+                Thank you for your order! Your payment has been confirmed and our team is preparing your order.
+              </p>
+              <div style="background: #f8fafc; border-radius: 8px; padding: 14px; margin: 16px 0; font-size: 14px;">
+                <p style="margin: 4px 0;"><strong>Order Reference:</strong> ${orderRef}</p>
+                ${totalPaid ? `<p style="margin: 4px 0;"><strong>Total Paid:</strong> ${totalPaid}</p>` : ""}
+                ${shippingMethodLabel ? `<p style="margin: 4px 0;"><strong>Shipping:</strong> ${shippingMethodLabel}</p>` : ""}
+                <p style="margin: 4px 0;"><strong>Shipping Address:</strong> ${customerDetails.address}</p>
+              </div>
+              <table style="width: 100%; border-collapse: collapse; margin-top: 12px;">
+                ${customerItemsSummaryHtml}
+              </table>
+              <p style="font-size: 13px; color: #64748b; margin-top: 20px; margin-bottom: 0;">
+                Questions? Reply directly to this email or contact us at <a href="mailto:hisassports@gmail.com" style="color: #111;">hisassports@gmail.com</a>.
+              </p>
+            </div>
+          </div>
+        `;
+
+        await transporter.sendMail({
+          from: `"SAS Sports" <${smtpUser}>`,
+          to: validCustomerEmail,
+          replyTo: primaryStoreEmail,
+          subject: `Your SAS Sports Order Confirmation (${orderRef})`,
+          html: customerHtml,
+        });
+      } catch (custErr) {
+        console.error("Customer confirmation email warning:", custErr);
+      }
+    }
 
     console.log("Email dispatched. ID:", info.messageId);
     return NextResponse.json({ success: true, messageId: info.messageId });

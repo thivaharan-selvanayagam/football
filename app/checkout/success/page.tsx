@@ -83,30 +83,38 @@ function SuccessContent() {
             email: storedCustomer?.email || verifyData.customer?.email || "N/A",
             phone: storedCustomer?.phone || verifyData.customer?.phone || "N/A",
             address: storedCustomer?.address || verifyData.customer?.address || "N/A",
-            promoCode: storedCustomer?.promoCode || null,
-            shippingMethod: storedCustomer?.shippingMethod || null,
-            mediaConsent: Boolean(storedCustomer?.mediaConsent),
+            promoCode: storedCustomer?.promoCode || verifyData.promoCode || null,
+            shippingMethod: storedCustomer?.shippingMethod || verifyData.shippingMethod || null,
+            mediaConsent:
+              storedCustomer?.mediaConsent !== undefined
+                ? Boolean(storedCustomer.mediaConsent)
+                : Boolean(verifyData.mediaConsent),
           };
 
-          if (storedItems.length > 0) {
-            const emailRes = await fetch("/api/send-order", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                customerDetails,
-                cartItems: storedItems,
-                orderRef: verifyData.orderRef || sessionId,
-                stripeSessionId: sessionId,
-                totalPaid: verifyData.amountTotal,
-                currency: verifyData.currency || "CAD",
-              }),
-            });
+          const itemsToSend =
+            storedItems.length > 0
+              ? storedItems
+              : Array.isArray(verifyData.fallbackItems) && verifyData.fallbackItems.length > 0
+              ? verifyData.fallbackItems
+              : [{ itemType: "stripe-fallback", productName: "Paid Stripe Order", qty: 1 }];
 
-            if (emailRes.ok) {
-              localStorage.setItem(sentKey, "true");
-            }
-          } else {
+          const emailRes = await fetch("/api/send-order", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              customerDetails,
+              cartItems: itemsToSend,
+              orderRef: verifyData.orderRef || sessionId,
+              stripeSessionId: sessionId,
+              totalPaid: verifyData.amountTotal,
+              currency: verifyData.currency || "CAD",
+            }),
+          });
+
+          if (emailRes.ok) {
             localStorage.setItem(sentKey, "true");
+          } else {
+            console.error("Order email dispatch failed:", await emailRes.text());
           }
         }
 

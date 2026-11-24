@@ -17,17 +17,30 @@ export async function GET(req: NextRequest) {
     }
 
     const stripe = new Stripe(stripeKey);
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    const session = await stripe.checkout.sessions.retrieve(sessionId, {
+      expand: ["line_items"],
+    });
 
     const isPaid = session.payment_status === "paid";
+
+    const fallbackItems =
+      session.line_items?.data.map((li) => ({
+        itemType: "stripe-fallback",
+        productName: li.description || "Order Item",
+        qty: li.quantity || 1,
+      })) || [];
 
     return NextResponse.json({
       verified: isPaid,
       paymentStatus: session.payment_status,
       sessionId: session.id,
       orderRef: session.metadata?.order_ref || session.id,
+      promoCode: session.metadata?.promo_code || null,
+      shippingMethod: session.metadata?.shipping_method || "Standard Shipping (GTA) (Free)",
+      mediaConsent: session.metadata?.media_consent === "Yes",
       amountTotal: session.amount_total != null ? session.amount_total / 100 : null,
       currency: (session.currency || "cad").toUpperCase(),
+      fallbackItems,
       customer: {
         name: session.metadata?.customer_name || session.customer_details?.name || "Customer",
         email:

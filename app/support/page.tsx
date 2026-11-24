@@ -4,17 +4,38 @@ import { useState } from "react";
 
 export default function SupportPage() {
   const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", email: "", order: "", message: "" });
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSent(true);
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setSent(true);
+      } else {
+        setError(data.error || "Unable to send message right now. Please try again.");
+      }
+    } catch {
+      setError("Network error while sending message. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <section className="w-full min-h-screen bg-neutral-50 text-neutral-900 flex items-center justify-center py-16 px-6 sm:px-12 md:px-24">
       <div className="w-full max-w-5xl mx-auto grid md:grid-cols-2 gap-12 md:gap-16 items-start">
-        
         {/* Left Column: Contact Details */}
         <div className="space-y-6">
           <div>
@@ -47,10 +68,15 @@ export default function SupportPage() {
                 ✓
               </div>
               <h2 className="font-display text-lg font-bold text-neutral-900 mb-2">Message sent</h2>
-              <p className="text-sm text-neutral-600">We'll be in touch shortly.</p>
+              <p className="text-sm text-neutral-600">We&apos;ll be in touch shortly.</p>
             </div>
           ) : (
             <form onSubmit={submit} className="space-y-4">
+              {error && (
+                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700 font-medium">
+                  {error}
+                </div>
+              )}
               <input
                 required
                 placeholder="Your name"
@@ -82,14 +108,14 @@ export default function SupportPage() {
               />
               <button
                 type="submit"
-                className="w-full bg-[#232323] hover:bg-black text-white font-display font-bold py-3.5 rounded-full text-sm transition shadow-md"
+                disabled={loading}
+                className="w-full bg-[#232323] hover:bg-black disabled:opacity-50 text-white font-display font-bold py-3.5 rounded-full text-sm transition shadow-md"
               >
-                Send message
+                {loading ? "Sending…" : "Send message"}
               </button>
             </form>
           )}
         </div>
-
       </div>
     </section>
   );
