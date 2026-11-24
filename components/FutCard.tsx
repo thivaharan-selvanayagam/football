@@ -121,7 +121,7 @@ export default function FutCard({
 
       {/* 6. BOTTOM CENTER BADGES (Flag & Club) */}
       <g transform="translate(0, -6)"> 
-        {countryFlag && (
+        {countryFlag ? (
           <image
             key={countryFlag} 
             href={countryFlag}
@@ -131,6 +131,18 @@ export default function FutCard({
             width="26"
             height="15"
             preserveAspectRatio="none"
+          />
+        ) : (
+          <rect
+            x="104"
+            y="305"
+            width="26"
+            height="15"
+            rx="1.5"
+            fill="rgba(255,255,255,0.3)"
+            stroke={textColor}
+            strokeWidth="0.5"
+            strokeDasharray="2 2"
           />
         )}
 

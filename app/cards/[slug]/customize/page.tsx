@@ -59,18 +59,20 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
   const [posGroup, setPosGroup] = useState<keyof typeof POSITIONS>("Midfield");
   const [position, setPosition] = useState("CAM");
   
-  // Set default club to UMSC and show default preset tab in Step 2
+  // Default Step 2 to "+ Custom Badge" with UMSC badge pre-selected
   const [club, setClub] = useState("UMSC");
   const [clubBadge, setClubBadge] = useState<string | null>("/images/presets/umsc.png");
-  const [isCustomClub, setIsCustomClub] = useState(false);
+  const [isCustomClub, setIsCustomClub] = useState(true);
   const [customClubName, setCustomClubName] = useState("");
+  const [customBadgeData, setCustomBadgeData] = useState<string | null>("/images/presets/umsc.png");
   const customBadgeRef = useRef<HTMLInputElement>(null);
 
-  // Set default country to Canada and show default preset tab in Step 3
+  // Default Step 3 to "+ Custom Flag" with Canada flag pre-selected
   const [country, setCountry] = useState("Canada");
   const [countryFlag, setCountryFlag] = useState<string | null>("/images/flags/canada.png");
-  const [isCustomCountry, setIsCustomCountry] = useState(false);
+  const [isCustomCountry, setIsCustomCountry] = useState(true);
   const [customCountryName, setCustomCountryName] = useState("");
+  const [customFlagData, setCustomFlagData] = useState<string | null>("/images/flags/canada.png");
   const customFlagRef = useRef<HTMLInputElement>(null);
   
   const [attrs, setAttrs] = useState<Attrs>({ PAC: 96, SHO: 97, PAS: 98, DRI: 99, DEF: 95, PHY: 96 });
@@ -419,21 +421,32 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
               <div className="grid grid-cols-2 gap-2 mb-6 bg-neutral-100 p-1 rounded-xl border border-neutral-200/80">
                 <button
                   type="button"
-                  onClick={() => setIsCustomClub(false)}
-                  className={`py-2 text-xs font-display font-bold rounded-lg transition ${
-                    !isCustomClub ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-900"
-                  }`}
-                >
-                  Search Preset Clubs
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsCustomClub(true)}
+                  onClick={() => {
+                    setIsCustomClub(true);
+                    setClub(customClubName || "UMSC");
+                    setClubBadge(customBadgeData);
+                  }}
                   className={`py-2 text-xs font-display font-bold rounded-lg transition ${
                     isCustomClub ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-900"
                   }`}
                 >
                   + Custom Badge
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsCustomClub(false);
+                    if (!CLUBS.includes(club)) {
+                      const defaultPreset = CLUBS[0] || "UMSC";
+                      setClub(defaultPreset);
+                      setClubBadge(`/images/presets/${defaultPreset.toLowerCase().replace(/\s+/g, "-")}.png`);
+                    }
+                  }}
+                  className={`py-2 text-xs font-display font-bold rounded-lg transition ${
+                    !isCustomClub ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-900"
+                  }`}
+                >
+                  Search Preset Clubs
                 </button>
               </div>
 
@@ -471,9 +484,9 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
                       value={customClubName}
                       onChange={(e) => {
                         setCustomClubName(e.target.value);
-                        setClub(e.target.value); 
+                        setClub(e.target.value || "UMSC");
                       }}
-                      placeholder="e.g. Tangalle FC"
+                      placeholder="e.g. UMSC"
                       className="w-full border border-neutral-200 rounded-xl px-4 py-2.5 text-sm text-neutral-900 focus-ring font-medium placeholder:text-neutral-400"
                     />
                   </div>
@@ -481,9 +494,9 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
                   <div>
                     <label className="block text-xs text-neutral-600 mb-1.5 font-bold">Upload Badge Photo</label>
                     <div className="flex items-center gap-4">
-                      {clubBadge ? (
+                      {customBadgeData ? (
                         <img 
-                          src={clubBadge} 
+                          src={customBadgeData} 
                           alt="badge upload thumbnail" 
                           className="w-12 h-12 rounded-full object-cover border border-neutral-200 p-0.5 bg-white shadow-sm" 
                         />
@@ -498,7 +511,7 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
                         onClick={() => customBadgeRef.current?.click()}
                         className="flex-1 text-left border border-dashed border-neutral-300 rounded-xl px-4 py-3 text-xs text-neutral-600 bg-neutral-50 hover:border-neutral-400 transition font-medium"
                       >
-                        {clubBadge ? "Change emblem image" : "Click to select logo file (PNG/JPG)"}
+                        {customBadgeData ? "Change emblem image" : "Click to select logo file (PNG/JPG)"}
                       </button>
                       
                       <input
@@ -511,7 +524,9 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
                           if (file) {
                             const reader = new FileReader();
                             reader.onload = () => {
-                              setClubBadge(reader.result as string); 
+                              const res = reader.result as string;
+                              setCustomBadgeData(res);
+                              setClubBadge(res); 
                             };
                             reader.readAsDataURL(file);
                           }
@@ -533,21 +548,33 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
               <div className="grid grid-cols-2 gap-2 mb-6 bg-neutral-100 p-1 rounded-xl border border-neutral-200/80">
                 <button
                   type="button"
-                  onClick={() => setIsCustomCountry(false)}
-                  className={`py-2 text-xs font-display font-bold rounded-lg transition ${
-                    !isCustomCountry ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-900"
-                  }`}
-                >
-                  Search Preset Flags
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsCustomCountry(true)}
+                  onClick={() => {
+                    setIsCustomCountry(true);
+                    setCountry(customCountryName || "Canada");
+                    setCountryFlag(customFlagData);
+                  }}
                   className={`py-2 text-xs font-display font-bold rounded-lg transition ${
                     isCustomCountry ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-900"
                   }`}
                 >
                   + Custom Flag
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsCustomCountry(false);
+                    if (!COUNTRIES.includes(country)) {
+                      const defaultCountry = COUNTRIES[0] || "Canada";
+                      setCountry(defaultCountry);
+                      const filename = defaultCountry.toLowerCase().trim().replace(/\s+/g, "-");
+                      setCountryFlag(`/images/flags/${filename}.png`);
+                    }
+                  }}
+                  className={`py-2 text-xs font-display font-bold rounded-lg transition ${
+                    !isCustomCountry ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-900"
+                  }`}
+                >
+                  Search Preset Flags
                 </button>
               </div>
 
@@ -591,9 +618,9 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
                       value={customCountryName}
                       onChange={(e) => {
                         setCustomCountryName(e.target.value);
-                        setCountry(e.target.value);
+                        setCountry(e.target.value || "Canada");
                       }}
-                      placeholder="e.g. Sri Lanka"
+                      placeholder="e.g. Canada"
                       className="w-full border border-neutral-200 rounded-xl px-4 py-2.5 text-sm text-neutral-900 focus-ring font-medium placeholder:text-neutral-400"
                     />
                   </div>
@@ -601,9 +628,9 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
                   <div>
                     <label className="block text-xs text-neutral-600 mb-1.5 font-bold">Upload Flag Photo</label>
                     <div className="flex items-center gap-4">
-                      {countryFlag ? (
+                      {customFlagData ? (
                         <img 
-                          src={countryFlag} 
+                          src={customFlagData} 
                           alt="flag thumbnail preview" 
                           className="w-12 h-8 rounded object-cover border border-neutral-200 shadow-sm" 
                         />
@@ -618,7 +645,7 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
                         onClick={() => customFlagRef.current?.click()}
                         className="flex-1 text-left border border-dashed border-neutral-300 rounded-xl px-4 py-3 text-xs text-neutral-600 bg-neutral-50 hover:border-neutral-400 transition font-medium"
                       >
-                        {countryFlag ? "Change flag image" : "Click to select logo file (PNG/JPG)"}
+                        {customFlagData ? "Change flag image" : "Click to select flag file (PNG/JPG)"}
                       </button>
                       
                       <input
@@ -631,7 +658,9 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
                           if (file) {
                             const reader = new FileReader();
                             reader.onload = () => {
-                              setCountryFlag(reader.result as string);
+                              const res = reader.result as string;
+                              setCustomFlagData(res);
+                              setCountryFlag(res);
                             };
                             reader.readAsDataURL(file);
                           }
