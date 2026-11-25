@@ -60,9 +60,10 @@ export async function POST(req: NextRequest) {
     }
 
     const stripe = new Stripe(stripeKey);
+    // Keep customer on the exact same origin (e.g. www vs non-www) so IndexedDB/localStorage cart photos stay accessible on redirect
     const origin =
-      process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
       req.headers.get("origin") ||
+      process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
       new URL(req.url).origin;
 
     const orderRef = `SAS-${Math.floor(100000 + Math.random() * 900000)}`;

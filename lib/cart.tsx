@@ -11,6 +11,7 @@ import {
   PROMO_CODE,
   STRIPE_TEST_PRODUCT,
 } from "@/lib/data";
+import { clearCartDraft, loadCartDraft, saveCartDraft } from "@/lib/orderDraftStore";
 
 export interface CartItem {
   id: string;
@@ -20,6 +21,7 @@ export interface CartItem {
   name: string; // player name on card
   style: string;
   size: string;
+  sizeDim?: string;
   position: string;
   club: string;
   country: string;
@@ -62,30 +64,40 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    const raw = localStorage.getItem("cardsplug-cart");
-    if (raw) {
+    let active = true;
+    (async () => {
+      const savedItems = await loadCartDraft();
+      if (active && Array.isArray(savedItems)) {
+        setItems(savedItems);
+      }
       try {
-        setItems(JSON.parse(raw));
+        const savedPromo = localStorage.getItem("cardsplug-promo");
+        if (active && savedPromo && isValidPromoCode(savedPromo)) {
+          setPromoCode(PROMO_CODE);
+        }
       } catch {}
-    }
-    const savedPromo = localStorage.getItem("cardsplug-promo");
-    if (savedPromo && isValidPromoCode(savedPromo)) {
-      setPromoCode(PROMO_CODE);
-    }
-    setHydrated(true);
+      if (active) setHydrated(true);
+    })();
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
-    if (hydrated) localStorage.setItem("cardsplug-cart", JSON.stringify(items));
+    if (hydrated) {
+      saveCartDraft(items);
+    }
   }, [items, hydrated]);
 
   useEffect(() => {
     if (!hydrated) return;
-    if (promoCode) {
-      localStorage.setItem("cardsplug-promo", promoCode);
-    } else {
-      localStorage.removeItem("cardsplug-promo");
-    }
+    try {
+      if (promoCode) {
+        localStorage.setItem("cardsplug-promo", promoCode);
+      } else {
+        localStorage.removeItem("cardsplug-promo");
+      }
+    } catch {}
   }, [promoCode, hydrated]);
 
   const applyPromoCode = (code: string): boolean => {
@@ -118,6 +130,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const clear = () => {
     setItems([]);
     setPromoCode(null);
+    clearCartDraft();
   };
 
   const subtotal = items.reduce((sum, i) => {

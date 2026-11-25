@@ -13,6 +13,7 @@ import {
   STRIPE_TEST_PRODUCT,
 } from "@/lib/data";
 import { formatRs } from "@/lib/format";
+import { savePendingCustomerDraft } from "@/lib/orderDraftStore";
 
 export default function CheckoutPage() {
   const {
@@ -85,18 +86,19 @@ export default function CheckoutPage() {
         .filter(Boolean)
         .join(", ");
 
-      localStorage.setItem(
-        "cardsplug-pending-customer",
-        JSON.stringify({
-          name: form.name.trim(),
-          email: form.email.trim(),
-          phone: form.phone.trim() || "N/A",
-          address: fullAddress,
-          promoCode: promoCode || null,
-          shippingMethod: `${selectedShipping.label} (Free)`,
-          mediaConsent: true,
-        })
-      );
+      await savePendingCustomerDraft({
+        name: form.name.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim() || "N/A",
+        streetAddress: form.address.trim(),
+        city: form.city.trim(),
+        postcode: form.postcode.trim(),
+        country: form.country.trim(),
+        address: fullAddress,
+        promoCode: promoCode || null,
+        shippingMethod: `${selectedShipping.label} (Free)`,
+        mediaConsent: true,
+      });
 
       // Strip large base64 images from the Stripe session request payload
       const checkoutItems = items.map((i) => ({

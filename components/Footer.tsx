@@ -21,7 +21,7 @@ export default function Footer() {
             {/* Social Media Links */}
             <div className="flex items-center gap-2.5">
               <a
-                href="https://www.instagram.com/hisassports/"
+                href="https://www.instagram.com/sassportscard/"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="SAS Sports on Instagram"

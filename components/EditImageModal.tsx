@@ -39,18 +39,30 @@ export default function EditImageModal({
       setCroppedAreaPixels(currentPixels);
       try {
         // Generates live real-time preview on the left side card as you drag or zoom
-        const previewUrl = await getCroppedImg(imageSrc, currentPixels);
+        const previewUrl = await getCroppedImg(imageSrc, currentPixels, rotation);
         if (previewUrl) setTemporaryPreview(previewUrl);
       } catch (e) {
         console.error(e);
       }
     },
-    [imageSrc]
+    [imageSrc, rotation]
   );
 
   if (!isOpen) return null;
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (croppedAreaPixels) {
+      try {
+        const finalCropped = await getCroppedImg(imageSrc, croppedAreaPixels, rotation);
+        if (finalCropped) {
+          onSave(finalCropped);
+          onClose();
+          return;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
     if (temporaryPreview) {
       onSave(temporaryPreview);
       onClose();

@@ -11,6 +11,7 @@ import {
 import { formatRs } from "@/lib/format";
 import { useCart, CartItem } from "@/lib/cart";
 import EditImageModal from "@/components/EditImageModal"; 
+import { renderCardToDataUrl, resizeImageFileToDataUrl } from "@/lib/renderCardCanvas";
 
 type Attrs = { PAC: number; SHO: number; PAS: number; DRI: number; DEF: number; PHY: number };
 
@@ -97,37 +98,15 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
 
     e.target.value = "";
 
-    const img = new Image();
-    const objectUrl = URL.createObjectURL(file);
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      const maxDim = 800;
-      let width = img.width;
-      let height = img.height;
+    // 1. Always preserve the customer's original unedited photo (background NOT removed)
+    try {
+      const origDataUrl = await resizeImageFileToDataUrl(file, 1200, "image/jpeg", 0.85);
+      setOriginalPhoto(origDataUrl);
+    } catch (origErr) {
+      console.error("Failed to capture original photo:", origErr);
+    }
 
-      if (width > height) {
-        if (width > maxDim) {
-          height = Math.round((height * maxDim) / width);
-          width = maxDim;
-        }
-      } else {
-        if (height > maxDim) {
-          width = Math.round((width * maxDim) / height);
-          height = maxDim;
-        }
-      }
-
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext("2d");
-      if (ctx) {
-        ctx.drawImage(img, 0, 0, width, height);
-        setOriginalPhoto(canvas.toDataURL("image/jpeg", 0.7));
-      }
-      URL.revokeObjectURL(objectUrl);
-    };
-    img.src = objectUrl;
-
+    // 2. Run background removal and open interactive crop modal
     try {
       setIsRemovingBg(true);
       const bgRemovalModule = (await import("@imgly/background-removal")) as any;
@@ -154,59 +133,6 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
     }
   };
 
-  const generateFullCardSnapshot = (): Promise<string | null> => {
-    return new Promise((resolve) => {
-      try {
-        const svgElement = previewRef.current?.querySelector("svg");
-        if (!svgElement) return resolve(null);
-
-        const timeout = setTimeout(() => {
-          resolve(null);
-        }, 1500);
-
-        const svgData = new XMLSerializer().serializeToString(svgElement);
-        const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
-        const blobURL = URL.createObjectURL(svgBlob);
-
-        const img = new Image();
-        img.crossOrigin = "anonymous";
-
-        img.onload = () => {
-          clearTimeout(timeout);
-          try {
-            const canvas = document.createElement("canvas");
-            canvas.width = 260;
-            canvas.height = 351;
-            const ctx = canvas.getContext("2d");
-            if (ctx) {
-              ctx.drawImage(img, 0, 0);
-              const pngDataUrl = canvas.toDataURL("image/png");
-              URL.revokeObjectURL(blobURL);
-              resolve(pngDataUrl);
-            } else {
-              URL.revokeObjectURL(blobURL);
-              resolve(null);
-            }
-          } catch (e) {
-            URL.revokeObjectURL(blobURL);
-            resolve(null);
-          }
-        };
-
-        img.onerror = () => {
-          clearTimeout(timeout);
-          URL.revokeObjectURL(blobURL);
-          resolve(null);
-        };
-
-        img.src = blobURL;
-      } catch (e) {
-        console.error("Error capturing card snapshot:", e);
-        resolve(null);
-      }
-    });
-  };
-
   const canNext = () => {
     if (step === 1) return name.trim().length > 0;
     return true;
@@ -214,18 +140,32 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
 
   const handleNext = async () => {
     if (step === 4) {
-      const fullCardPreviewUrl = await generateFullCardSnapshot();
+      // Render full high-res card preview with frame, BG-removed cutout, stats, flag, badge & logo
+      const fullCardPreviewUrl = await renderCardToDataUrl({
+        name: name || "Player",
+        position,
+        overall,
+        attrs,
+        gradient: product.gradient,
+        frameImage: product.frameImage,
+        photo,
+        clubBadge,
+        countryFlag,
+        textColor,
+      });
 
       const item: CartItem = {
         id: `${Date.now()}`,
+        itemType: "card",
         productSlug: product.slug,
         productName: product.name,
-        name,
+        name: name.trim() || "Player",
         style,
         size,
+        sizeDim: sizeInfo.dim,
         position,
-        club,
-        country,
+        club: club.trim() || "UMSC",
+        country: country.trim() || "Canada",
         attributes: attrs,
         overall,
         addons: selectedAddons,
@@ -235,11 +175,11 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
         gradient: product.gradient,
         textColor,
         rawOriginalPhoto: originalPhoto,
-        photo,                        // ✨ Save cropped player photo
-        clubBadge,                    // ✨ Save selected club badge
-        countryFlag,                  // ✨ Save country flag
+        photo,
+        clubBadge,
+        countryFlag,
         fullCardPreview: fullCardPreviewUrl || photo,
-      } as any;
+      };
 
       addItem(item);
       router.push("/cart");
@@ -307,29 +247,41 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
                 className="w-full border border-neutral-200 rounded-xl px-4 py-3 mb-4 font-display font-bold text-lg text-neutral-900 focus-ring placeholder:text-neutral-400"
               />
               
-              <div className="flex items-center gap-4 mb-6">
+              <div className="flex items-center gap-3 mb-6">
                 {photo ? (
-                  <img src={photo} alt="upload" className="w-16 h-16 rounded-xl object-cover border border-neutral-200" />
+                  <img src={photo} alt="upload" className="w-16 h-16 rounded-xl object-contain border border-neutral-200 bg-neutral-50 shrink-0" />
                 ) : (
-                  <div className="w-16 h-16 rounded-xl bg-neutral-100 border border-dashed border-neutral-300 flex items-center justify-center text-xs text-neutral-400 font-medium">
+                  <div className="w-16 h-16 rounded-xl bg-neutral-100 border border-dashed border-neutral-300 flex items-center justify-center text-xs text-neutral-400 font-medium shrink-0">
                     No image
                   </div>
                 )}
                 
-                <button
-                  type="button"
-                  disabled={isRemovingBg}
-                  onClick={() => {
-                    if (photo) {
-                      setIsModalOpen(true); 
-                    } else {
-                      fileRef.current?.click();
-                    }
-                  }}
-                  className="flex-1 border border-dashed border-neutral-300 rounded-xl py-4 text-sm text-neutral-600 hover:border-neutral-400 transition font-medium disabled:opacity-50 flex items-center justify-center gap-2 bg-neutral-50"
-                >
-                  {photo ? "Edit Photo Framing" : "Click to upload a photo"}
-                </button>
+                <div className="flex-1 flex flex-col sm:flex-row gap-2">
+                  <button
+                    type="button"
+                    disabled={isRemovingBg}
+                    onClick={() => {
+                      if (photo) {
+                        setIsModalOpen(true); 
+                      } else {
+                        fileRef.current?.click();
+                      }
+                    }}
+                    className="flex-1 border border-dashed border-neutral-300 rounded-xl py-4 px-3 text-sm text-neutral-600 hover:border-neutral-400 transition font-medium disabled:opacity-50 flex items-center justify-center gap-2 bg-neutral-50"
+                  >
+                    {photo ? "Edit Photo Framing" : "Click to upload a photo"}
+                  </button>
+                  {photo && (
+                    <button
+                      type="button"
+                      disabled={isRemovingBg}
+                      onClick={() => fileRef.current?.click()}
+                      className="border border-neutral-200 rounded-xl py-3 px-3.5 text-xs text-neutral-700 hover:bg-neutral-100 transition font-bold shrink-0 bg-white"
+                    >
+                      Replace Photo
+                    </button>
+                  )}
+                </div>
                 <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onPhotoChange} />
               </div>
 
@@ -519,16 +471,22 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
                         type="file"
                         accept="image/*"
                         className="hidden"
-                        onChange={(e) => {
+                        onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (file) {
-                            const reader = new FileReader();
-                            reader.onload = () => {
-                              const res = reader.result as string;
+                            try {
+                              const res = await resizeImageFileToDataUrl(file, 400, "image/png");
                               setCustomBadgeData(res);
-                              setClubBadge(res); 
-                            };
-                            reader.readAsDataURL(file);
+                              setClubBadge(res);
+                            } catch {
+                              const reader = new FileReader();
+                              reader.onload = () => {
+                                const res = reader.result as string;
+                                setCustomBadgeData(res);
+                                setClubBadge(res);
+                              };
+                              reader.readAsDataURL(file);
+                            }
                           }
                         }}
                       />
@@ -653,16 +611,22 @@ function CustomizeInner({ params }: { params: { slug: string } }) {
                         type="file"
                         accept="image/*"
                         className="hidden"
-                        onChange={(e) => {
+                        onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (file) {
-                            const reader = new FileReader();
-                            reader.onload = () => {
-                              const res = reader.result as string;
+                            try {
+                              const res = await resizeImageFileToDataUrl(file, 400, "image/png");
                               setCustomFlagData(res);
                               setCountryFlag(res);
-                            };
-                            reader.readAsDataURL(file);
+                            } catch {
+                              const reader = new FileReader();
+                              reader.onload = () => {
+                                const res = reader.result as string;
+                                setCustomFlagData(res);
+                                setCountryFlag(res);
+                              };
+                              reader.readAsDataURL(file);
+                            }
                           }
                         }}
                       />

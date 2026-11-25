@@ -7,6 +7,7 @@ import FutCard from "@/components/FutCard";
 import { getProduct, SIZES, calculateCardPrice, CardStyle, CardSize } from "@/lib/data";
 import { formatRs } from "@/lib/format";
 import { useCart, CartItem } from "@/lib/cart";
+import { renderCardToDataUrl } from "@/lib/renderCardCanvas";
 
 const sampleAttrs = { PAC: 94, SHO: 96, PAS: 92, DRI: 88, DEF: 90, PHY: 92 };
 
@@ -104,7 +105,7 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
     reader.readAsDataURL(file);
   };
 
-  const handleManualOrderSubmit = (e: React.FormEvent) => {
+  const handleManualOrderSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!uploadedPhoto) {
@@ -117,24 +118,43 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
       return;
     }
 
+    const attrsObj = {
+      PAC: formData.PAC,
+      SHO: formData.SHO,
+      PAS: formData.PAS,
+      DRI: formData.DRI,
+      DEF: formData.DEF,
+      PHY: formData.PHY,
+    };
+
+    const renderedPreview = await renderCardToDataUrl({
+      name: formData.playerName || "Player",
+      position: formData.position || "CAM",
+      overall: formData.overall,
+      attrs: attrsObj,
+      gradient: product.gradient,
+      frameImage: product.frameImage,
+      photo: uploadedPhoto,
+      clubBadge: uploadedClubBadge || DEFAULT_PREVIEW_BADGE,
+      countryFlag: DEFAULT_PREVIEW_FLAG,
+      textColor: "#3c3f25",
+    });
+
+    const sizeObj = SIZES.find((s) => s.id === size);
+
     const item: CartItem = {
       id: `${Date.now()}`,
+      itemType: "card",
       productSlug: product.slug,
       productName: product.name,
       name: formData.playerName || "Player",
       style,
       size,
+      sizeDim: sizeObj?.dim,
       position: formData.position || "CAM",
       club: formData.clubName || "UMSC",
       country: formData.country || "Canada",
-      attributes: {
-        PAC: formData.PAC,
-        SHO: formData.SHO,
-        PAS: formData.PAS,
-        DRI: formData.DRI,
-        DEF: formData.DEF,
-        PHY: formData.PHY,
-      },
+      attributes: attrsObj,
       overall: formData.overall,
       addons: [],
       unitPrice: price,
@@ -144,16 +164,10 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
       textColor: "#3c3f25",
       photo: uploadedPhoto,
       rawOriginalPhoto: uploadedPhoto,
-      fullCardPreview: uploadedPhoto,
+      fullCardPreview: renderedPreview || uploadedPhoto,
       clubBadge: uploadedClubBadge || DEFAULT_PREVIEW_BADGE,
       countryFlag: DEFAULT_PREVIEW_FLAG,
-      customerInfo: {
-        name: formData.customerName,
-        phone: formData.customerPhone,
-        email: formData.customerEmail,
-        address: formData.customerAddress,
-      },
-    } as any;
+    };
 
     addItem(item);
     setIsFormOpen(false);

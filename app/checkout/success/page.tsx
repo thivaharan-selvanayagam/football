@@ -4,6 +4,12 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useCart } from "@/lib/cart";
 import { formatRs } from "@/lib/format";
+import {
+  clearCartDraft,
+  clearPendingCustomerDraft,
+  loadCartDraft,
+  loadPendingCustomerDraft,
+} from "@/lib/orderDraftStore";
 
 export default function SuccessPage() {
   return (
@@ -69,19 +75,22 @@ function SuccessContent() {
           let storedCustomer: any = null;
 
           try {
-            const rawCart = localStorage.getItem("cardsplug-cart");
-            if (rawCart) storedItems = JSON.parse(rawCart);
+            const loadedCart = await loadCartDraft();
+            if (Array.isArray(loadedCart)) storedItems = loadedCart;
           } catch {}
 
           try {
-            const rawCustomer = localStorage.getItem("cardsplug-pending-customer");
-            if (rawCustomer) storedCustomer = JSON.parse(rawCustomer);
+            storedCustomer = await loadPendingCustomerDraft();
           } catch {}
 
           const customerDetails = {
             name: storedCustomer?.name || verifyData.customer?.name || "Customer",
             email: storedCustomer?.email || verifyData.customer?.email || "N/A",
             phone: storedCustomer?.phone || verifyData.customer?.phone || "N/A",
+            streetAddress: storedCustomer?.streetAddress || null,
+            city: storedCustomer?.city || null,
+            postcode: storedCustomer?.postcode || null,
+            country: storedCustomer?.country || null,
             address: storedCustomer?.address || verifyData.customer?.address || "N/A",
             promoCode: storedCustomer?.promoCode || verifyData.promoCode || null,
             shippingMethod: storedCustomer?.shippingMethod || verifyData.shippingMethod || null,
@@ -113,15 +122,20 @@ function SuccessContent() {
 
           if (emailRes.ok) {
             localStorage.setItem(sentKey, "true");
+            await clearPendingCustomerDraft();
+            await clearCartDraft();
+            localStorage.removeItem("cardsplug-promo");
+            clear();
           } else {
             console.error("Order email dispatch failed:", await emailRes.text());
           }
+        } else {
+          await clearPendingCustomerDraft();
+          await clearCartDraft();
+          localStorage.removeItem("cardsplug-promo");
+          clear();
         }
 
-        localStorage.removeItem("cardsplug-pending-customer");
-        localStorage.removeItem("cardsplug-cart");
-        localStorage.removeItem("cardsplug-promo");
-        clear();
         setStatus("confirmed");
       } catch {
         setStatus("error");
